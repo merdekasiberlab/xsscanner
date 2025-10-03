@@ -1,0 +1,93 @@
+version: "3.9"
+services:
+  canary:
+    build:
+      context: .
+      dockerfile: tools/eval/Dockerfile.dev
+    command: ["gunicorn", "-b", "0.0.0.0:5000", "tools.eval.canary_xss_server:app"]
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - work:/work
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  oast:
+    build:
+      context: .
+      dockerfile: tools/eval/Dockerfile.dev
+    command: ["gunicorn", "-b", "0.0.0.0:9000", "tools.eval.oast_receiver:app"]
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./:/app
+      - work:/work
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  runner:
+    build:
+      context: .
+      dockerfile: tools/eval/Dockerfile.dev
+    command: ["bash", "-lc", "sleep infinity"]
+    depends_on:
+      - canary
+      - oast
+    volumes:
+      - ./:/app
+      - work:/work
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  runner-fast:
+    build:
+      context: .
+      dockerfile: tools/eval/Dockerfile.dev
+    depends_on:
+      - canary
+      - oast
+    command: ["bash", "-lc", "until curl -fsS http://canary:5000/health; do sleep 1; done; until curl -fsS http://oast:9000/health; do sleep 1; done; export OAST_BASE_URL=http://oast:9000/t; python main.py http://canary:5000 --preset fast --browsers 1 --workers 4 --depth 1 --hash-fuzz --redact-evidence --format json --out /work/results.json; python tools/eval/evaluate_matrix.py --ground tools/eval/ground_truth.yaml --scan /work/results.json --oast /work/oast_hits.db --report /work/eval_report.md --csv /work/eval_metrics.csv" ]
+    volumes:
+      - ./:/app
+      - work:/work
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: "no"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  work:
+    driver: local

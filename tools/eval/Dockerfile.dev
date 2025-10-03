@@ -1,0 +1,34 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir --upgrade pip
+
+# Minimal deps for canary/oast/evaluator
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    git \
+    # Playwright runtime deps (subset)
+    libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+    libxkbcommon0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 \
+    libgbm1 libpango-1.0-0 libcairo2 libasound2 libxshmfence1 fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    Flask==3.0.3 \
+    flask-sock==0.7.0 \
+    simple-websocket==1.0.0 \
+    gunicorn==22.0.0 \
+    PyYAML==6.0.1 \
+    pandas==2.2.2 \
+    playwright==1.47.0
+
+RUN python -m playwright install chromium
+
+COPY . /app
+
+CMD ["python", "tools/eval/canary_xss_server.py", "--port", "5000"]
