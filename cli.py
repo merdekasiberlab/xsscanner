@@ -112,9 +112,9 @@ def _render_sanitizer_overview(param_name: str, sanitizer_map: dict) -> dict:
         return {'filtered': 0, 'encoded': 0, 'reflected': 0, 'total': 0}
     counts = Counter(sanitizer_map.values())
     table = Table(show_header=True, header_style='bold cyan', border_style='yellow')
-    table.add_column('Status', style='cyan')
-    table.add_column('Jumlah', justify='right', style='yellow')
-    table.add_column('Contoh', style='magenta', overflow='fold')
+    table.add_column(tr('Status', 'Status'), style='cyan')
+    table.add_column(tr('Jumlah', 'Count'), justify='right', style='yellow')
+    table.add_column(tr('Contoh', 'Samples'), style='magenta', overflow='fold')
     for status in ('reflected', 'encoded', 'filtered'):
         chars = [
             _format_char_label(ch)
@@ -124,8 +124,8 @@ def _render_sanitizer_overview(param_name: str, sanitizer_map: dict) -> dict:
         preview_items = list(dict.fromkeys(chars))
         preview = ' '.join(preview_items) if preview_items else '-'
         table.add_row(status.title(), str(counts.get(status, 0) or 0), preview)
-    subtitle = f"Total sampel: {sum(counts.values())}"
-    console.print(Panel(table, title=f"[bold yellow]Fingerprint Sanitizer '{param_name}'[/bold yellow]", border_style='yellow', subtitle=subtitle))
+    subtitle = tr('Total sampel: {total}', 'Total samples: {total}').format(total=sum(counts.values()))
+    console.print(Panel(table, title=tr("[bold yellow]Fingerprint Sanitizer '{param}'[/bold yellow]", "[bold yellow]Sanitizer Fingerprint '{param}'[/bold yellow]").format(param=param_name), border_style='yellow', subtitle=subtitle))
     return {
         'filtered': int(counts.get('filtered', 0) or 0),
         'encoded': int(counts.get('encoded', 0) or 0),
@@ -816,3 +816,11 @@ if __name__ == "__main__":
         sys.exit(1)
     except Exception:
         logger.error("Terjadi error tak terduga!", exc_info=True)
+
+
+
+
+
+
+
+
