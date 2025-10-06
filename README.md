@@ -1,150 +1,149 @@
 ﻿<div align="center">
 
-<img src="docs/assets/xssgenai.jpg" alt="XSS Scanner Hero Banner" width="820" />
+<img src="docs/assets/xssgenai.jpg" alt="XSSSGENAI Hero Banner" width="820" />
 
-![XSSGENAI - Merdeka Siber](https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&pause=1200&color=F70000&center=true&vCenter=true&width=800&height=100&lines=XSSGENAI+-+Merdeka+Siber;WAF+Aware+%7C+AI-Assisted+%7C+Crawler-Driven)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&pause=1200&color=F70000&center=true&vCenter=true&width=820&height=100&lines=XSSSGENAI+-+Merdeka+Siber;WAF-Aware+%7C+AI-Assisted+%7C+Crawler-Driven)](https://github.com/merdekasiberlab/xsscanner)
 
 </div>
 
 ---
 
-# XSS Scanner – English Edition
+# XSSSGENAI – English Edition
 
-## Table of Contents
-1. [Introduction](#1-introduction)
-2. [Key Capabilities](#2-key-capabilities)
-3. [Architecture Overview](#3-architecture-overview)
-4. [End-to-End Processing Flow](#4-end-to-end-processing-flow)
-5. [Installation & Environment Preparation](#5-installation--environment-preparation)
-6. [Configuration & Feature Flags](#6-configuration--feature-flags)
+> **Mission**: Deliver a repeatable, insight-rich XSS assessment on modern applications by blending context-aware payloads, adaptive crawling, WAF intelligence, and Gemini-assisted triage.
+
+## Contents
+1. [Quick Facts](#1-quick-facts)
+2. [Core Capabilities](#2-core-capabilities)
+3. [Architecture & Module Map](#3-architecture--module-map)
+4. [Processing Pipeline](#4-processing-pipeline)
+5. [Installation & Environment Setup](#5-installation--environment-setup)
+6. [Configuration & Extensibility](#6-configuration--extensibility)
 7. [Operating the CLI](#7-operating-the-cli)
-8. [WAF-Aware Operation](#8-waf-aware-operation)
-9. [AI-Assisted Analysis](#9-ai-assisted-analysis)
-10. [Resilience Scoring & Reporting](#10-resilience-scoring--reporting)
-11. [Logs, Data Hygiene, and Exporting](#11-logs-data-hygiene-and-exporting)
-12. [Troubleshooting & FAQ](#12-troubleshooting--faq)
-13. [Roadmap & Contribution Guidelines](#13-roadmap--contribution-guidelines)
-14. [Legal Notice](#14-legal-notice)
+8. [Payload & Testing Strategy](#8-payload--testing-strategy)
+9. [WAF-Aware Workflow](#9-waf-aware-workflow)
+10. [Gemini AI Companion](#10-gemini-ai-companion)
+11. [Resilience Metrics & Reporting](#11-resilience-metrics--reporting)
+12. [Logs, Data Hygiene & Export](#12-logs-data-hygiene--export)
+13. [Troubleshooting & FAQ](#13-troubleshooting--faq)
+14. [Roadmap & Contributions](#14-roadmap--contributions)
+15. [Legal Notice](#15-legal-notice)
 
 ---
 
-## 1. Introduction
-The MerdekaSiberLab **XSS Scanner** is a professional-grade toolkit for discovering, validating, and prioritising Cross-Site Scripting (XSS) weaknesses on modern web applications. It drives both static and dynamic crawling, understands common WAF responses, orchestrates payload campaigns, and optionally leverages Google Gemini (GenAI) to summarise findings.
+## 1. Quick Facts
+| Item | Details |
+|------|---------|
+| Product Name | **XSSSGENAI** (MerdekaSiberLab Access-X initiative) |
+| Focus | Cross-Site Scripting discovery, verification, and prioritisation |
+| Supported Targets | SSR, SPA, and hybrid applications (desktop or mobile web) |
+| Execution Modes | `quick` (static crawler) / `deep` (Playwright crawler) |
+| Languages | English & Bahasa Indonesia (selectable at launch) |
+| AI Integration | Optional Google Gemini analysis (`GENAI_API_KEY`) |
 
-Use it when you require:
-- repeatable XSS reconnaissance across SSR and SPA properties;
-- contextual payload adaptation against sanitisation patterns;
-- runtime DOM inspection and resilience scoring;
-- guided workflows suitable for red teams, offensive engineers, and DevSecOps squads.
+## 2. Core Capabilities
+- **Hybrid Crawling** – deterministic HTML traversal plus Playwright-driven session for SPA states, gated flows, and dynamic components.
+- **Context-Aware Payload Engine** – `payload_strategy.py` fingerprints sanitisation responses, aligning payloads to HTML, attribute, JS, URL, CSS, and SVG contexts.
+- **Dynamic DOM Tester** – `dynamic_dom_tester.py` leverages Playwright to capture runtime sink mutations, event handler attachment, and alert channels.
+- **WAF Detection & Bypass Guidance** – `waf_detector.py` cross-references headers, cookies, and body markers to identify vendors, throttle limits, and bypass tips.
+- **Gemini Intelligence Layer** – `ai_analysis.py` builds clean multi-part prompts for Google GenAI, outputting ranked sinks, exploit ladders, and mitigations in Rich panels.
+- **GraphQL Reconnaissance** – `graphql_scanner.py` discovers endpoints, performs introspection, and fuzzes resolver arguments for XSS surfaces.
+- **Resilience Scoring** – `tester.py` + `resilience.py` quantify defensive posture via CSP/Trusted Types probes, sink coverage, and confirmed payload execution.
 
-## 2. Key Capabilities
-| Capability | Description |
-|------------|-------------|
-| Hybrid Crawling | Combines HTML parsing with Playwright-backed exploration to cover SPAs, gated flows, and lazy-loaded content. |
-| Context-Aware Payload Engine | `payload_strategy.py` fingerprints sanitisation behaviour and injects context-appropriate payloads (HTML, attributes, JS strings, URLs, CSS, SVG). |
-| Dynamic DOM Tester | `dynamic_dom_tester.py` captures runtime sinks, event handler attachments, DOM mutations, and headless browser alerts to validate execution paths. |
-| WAF Detection & Bypass Guidance | `waf_detector.py` inspects headers, cookies, bodies to identify vendors, propose throttling, and feed bypass hints to the payload strategy. |
-| Gemini AI Integration | `ai_analysis.py` packages HTML, CSP information, and prioritised JS snippets for Google GenAI, returning ranked sinks, exploit ladders, mitigation plans, and validation steps. |
-| GraphQL Scanner | `graphql_scanner.py` enumerates endpoints, tests introspection, and fuzzes resolvers for XSS vectors. |
-| Resilience Scoring | `tester.py` + `resilience.py` consolidate CSP/Trusted Types probes, confirmed payloads, and sink coverage into a quantitative resilience score with actionable checklist. |
-| Multilingual CLI | `i18n.py` powers an English/Indonesian command experience (language selected at startup). |
-
-## 3. Architecture Overview
+## 3. Architecture & Module Map
 ```
-cli.py                  # User interface, orchestration, i18n hooks
-main.py                 # Minimal entry point wrapper
-network.py              # Session management, request pacing, anti-WAF camo
-waf_detector.py         # Fingerprinting heuristics, bypass plans
-payload_strategy.py     # Payload catalogue + sanitiser fingerprint logic
-dynamic_dom_tester.py   # Playwright instrumentation and sink harvesting
-tester.py               # Payload execution pipelines + resilience scoring
-ai_analysis.py          # Gemini prompting, sectioned Rich panels
-graphql_scanner.py      # Endpoint discovery, introspection, resolver fuzzing
-crawler/                # BFS crawler + Playwright advanced crawler variants
-parsers/                # Context extraction (HTML, attributes, JS, DOM)
-docs/                   # Documentation & evaluation artefacts
-waf_fingerprints.yaml   # WAF vendor signatures (headers/body/cookies)
+cli.py                  # CLI UX, orchestration, language selection
+main.py                 # Entry shim
+network.py              # Session handling, retries, pacing, WAF throttle
+waf_detector.py         # Fingerprints + bypass planner
+payload_strategy.py     # Context fingerprinting & payload generation
+dynamic_dom_tester.py   # Playwright instrumentation for runtime sinks
+tester.py               # Payload execution, resilience aggregation
+ai_analysis.py          # Gemini prompts, Rich rendering
+graphql_scanner.py      # Endpoint enumeration & resolver fuzzing
+crawler/                # Static BFS + advanced Playwright crawlers
+parsers/                # Context parsers (HTML, attributes, JS, DOM)
+docs/                   # Extra documentation & evaluation artefacts
+waf_fingerprints.yaml   # Vendor signatures
 i18n.py                 # Translation registry and helper utilities
 ```
 
 ### 3.1 Module Responsibilities
-| Module | Primary Responsibility | Notable Inputs | Outputs |
-|--------|------------------------|---------------|---------|
-| `cli.py` | Operator workflow, selection prompts, console rendering | CLI args, i18n labels, network/taster modules | Rich tables/panels, orchestrated scan flow |
-| `network.py` | HTTP session, retry, jitter, throttle | Requests session, WAF profile | Response objects, paced request loops |
-| `payload_strategy.py` | Generate payload campaigns per context | Sanitiser fingerprints, WAF hints | Payload templates for `tester.py` |
-| `dynamic_dom_tester.py` | Collect runtime sinks via Playwright | Target URLs, payload hooks | Sink inventory, runtime findings |
-| `tester.py` | Execute payloads, collect resilience evidence | Payload sets, DOM findings | Confirmed XSS hits, resilience summary |
-| `ai_analysis.py` | Build Gemini prompts, parse responses | HTML snapshots, JS snippets, runtime data | Sectioned AI panels, JS summaries |
-| `graphql_scanner.py` | GraphQL discovery & fuzzing | Base URL, request session | Endpoint list, introspection report |
+| Module | Inputs | Core Logic | Outputs |
+|--------|--------|------------|---------|
+| `cli.py` | CLI args, language selection | Orchestrates scan workflow, renders Rich UI | Payload results, AI panels, resilience summary |
+| `network.py` | Session config, WAF profile | Request pacing, jitter, retry/backoff | HTTP responses with enforced throttle |
+| `payload_strategy.py` | Sanitiser map, WAF hints | Tailors payload templates per context | Context-specific payload sets |
+| `dynamic_dom_tester.py` | Target pages, Playwright context | Runs headless evaluation, captures sinks | Runtime findings (events/mutations) |
+| `tester.py` | Payload sets, runtime data | Executes payload campaigns, tracks hits | Confirmed vulns, resilience signals |
+| `ai_analysis.py` | HTML snapshots, JS snippets, runtime JSON | Assembles Gemini prompt & renders Rich panels | Sectioned analysis (summary, exploit paths, etc.) |
+| `graphql_scanner.py` | Base URL, session | Enumerates endpoints, introspects schema | GraphQL findings & fuzz results |
 
-## 4. End-to-End Processing Flow
-The scanner executes a structured pipeline:
+## 4. Processing Pipeline
+1. **Input & Language Prompt** – parse CLI flags, display available languages, set translation scope via `_prompt_language_choice()`.
+2. **Logging Configuration** – initialise Rich console/file logging based on `--summary-only`.
+3. **Session Preparation** – configure `network.session` (cookies, headers, proxies, UA overrides).
+4. **WAF Fingerprinting** – optional HEAD/GET probes via `waf_detector.detect()`; surface vendor metadata, safe RPS/backoff, and bypass hints.
+5. **Authentication Setup** – manual Playwright login (`--manual-login`) or scripted credentials prepare an authenticated session.
+6. **Crawling Stage**
+   - *Quick Mode*: static BFS enumerates anchors/forms/scripts up to `--depth`, `--max-urls`.
+   - *Deep Mode*: Playwright crawler navigates SPA routes, capturing dynamic DOM states.
+7. **Inventory Building** – aggregate parameter candidates and external JS targets.
+8. **Sanitisation Fingerprinting** – baseline reflection tests classify character handling, encoded values, filtered sets.
+9. **Payload Execution** – contextual payload batches executed via `tester.py`, tracking reflection vs execution.
+10. **Dynamic DOM Pass** – Playwright headless run inspects runtime sinks, event attachments, alerts.
+11. **Optional Gemini Run** – `ai_analysis.py` processes curated HTML/JS/runtime data; renders Rich panels with exploit reasoning.
+12. **Resilience Aggregation** – compile CSP/Trusted Types coverage, mutated sinks, confirmed payloads into a 0–100 score.
+13. **GraphQL Module (Optional)** – discover endpoints, introspect schema, fuzz resolver arguments.
+14. **Summary & Logging** – display executed payloads, resilience checklists, AI output; write structured logs to `logs/`.
 
-1. **Argument Parsing & Language Selection** – CLI receives options, prompts for language via `_prompt_language_choice()`.
-2. **Logging Setup** – Rich console + file handler initialised with verbosity controlled by `--summary-only`.
-3. **Network Session** – `network.session` configured (cookies, headers, proxies). Optional `--cookie` injection occurs here.
-4. **WAF Detection (Optional)** – `waf_detector.detect()` performs HEAD/GET probes, matches vendor signatures, and suggests safe RPS/backoff. Operator decides whether to continue.
-5. **Authentication (Optional)** – Either manual headful login (`--manual-login`) or scripted credentials in deep mode set session state.
-6. **Crawling**
-   - **Quick Mode**: HTML BFS crawler enumerates anchors/forms/scripts up to `--depth` and `--max-urls`.
-   - **Deep Mode**: Playwright-based crawler handles SPA routes, navigations, dynamic content.
-7. **Parameter & JS Inventory** – `tester.py` collates parameter candidates; `crawler` collects external JS URLs for prioritisation.
-8. **Sanitisation Profiling** – For each parameter, baseline reflection tests generate a fingerprint summarised via `_render_sanitizer_overview()`.
-9. **Payload Campaign** – `payload_strategy.py` and `tester.py` execute multi-phase payloads per context, recording confirmed hits.
-10. **Dynamic DOM Testing** – Playwright renders candidate pages, capturing sinks/events/alerts into `runtime_findings`.
-11. **AI Analysis (Optional)** – When API key is provided and user opts in, `ai_analysis.py` sends curated HTML/JS/runtime data to Gemini, rendering Rich panels for sinks, exploit paths, mitigations.
-12. **Resilience Scoring** – `tester.resilience_summary()` aggregates protective signals (CSP, Trusted Types, mutated sinks) into a numerical score and checklist.
-13. **GraphQL Scanning (Optional)** – `graphql_scanner` enumerates endpoints, introspects schemas, and fuzzes resolver arguments.
-14. **Final Summary & Logs** – CLI displays executed payloads, resilience score, AI summaries, then writes detailed logs into `logs/`.
-
-### 4.1 Flow Diagram
+### 4.1 Visual Flow
 ```mermaid
 flowchart TD
-    A[Start CLI] --> B[Parse Args + Select Language]
+    A[Launch CLI] --> B[Parse Args + Choose Language]
     B --> C[Setup Logging & Session]
-    C --> D[Detect WAF]
+    C --> D{WAF Detected?}
     D -->|Abort| Z[Exit]
-    D -->|Proceed| E[Login / Session Prep]
+    D -->|Proceed| E[Auth Prep]
     E --> F{Mode}
     F -->|Quick| G[Static Crawler]
     F -->|Deep| H[Playwright Crawler]
     G --> I[Parameter & JS Inventory]
     H --> I
-    I --> J[Sanitisation Profiling]
+    I --> J[Sanitiser Fingerprint]
     J --> K[Payload Campaign]
     K --> L[Dynamic DOM Tester]
-    L --> M{AI Enabled?}
-    M -->|Yes| N[Gemini Analysis]
+    L --> M{Gemini Enabled?}
+    M -->|Yes| N[Gemini Panels]
     M -->|No| O[Skip]
     N --> P[Resilience Scoring]
     O --> P
-    P --> Q{GraphQL?}
+    P --> Q{GraphQL Flag?}
     Q -->|Yes| R[GraphQL Scanner]
-    Q -->|No| S[Summary Panels]
+    Q -->|No| S[Console Summary]
     R --> S
-    S --> T[Logs + Exit]
+    S --> T[Persist Logs]
 ```
 
-## 5. Installation & Environment Preparation
+## 5. Installation & Environment Setup
 ### 5.1 Clone & Virtual Environment
 ```bash
 git clone https://github.com/merdekasiberlab/xsscanner.git
 cd xsscanner
 python -m venv .venv
-# Windows PowerShell". .venv/Scripts/Activate.ps1"
+# Windows PowerShell"). .venv/Scripts/Activate.ps1"
 # macOS/Linux
 source .venv/bin/activate
 ```
 
-### 5.2 Install Requirements
+### 5.2 Dependencies
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 python -m playwright install chromium
 ```
 
-### 5.3 Optional Developer Tooling
+### 5.3 Developer Utilities
 ```bash
 pip install -r requirements-dev.txt
 ruff check .
@@ -156,48 +155,46 @@ pytest -m "not playwright"
 | Variable | Purpose |
 |----------|---------|
 | `GENAI_API_KEY` | Google GenAI key for Gemini integration. |
-| `HTTP_PROXY` / `HTTPS_PROXY` | Proxy configuration for outbound requests. |
-| `XSSCANNER_USER_AGENT` | Override default scanning user agent string. |
+| `HTTP_PROXY`, `HTTPS_PROXY` | Proxy configuration for outbound requests. |
+| `XSSCANNER_USER_AGENT` | Override default scanner user-agent string. |
 
-## 6. Configuration & Feature Flags
-- `config.py`: houses crawler depth defaults, max URL limits, log file paths.
-- `waf_fingerprints.yaml`: extend to recognise additional vendors or custom appliances.
-- `payloads.yml`: supply custom payload sets organised by context.
-- `i18n.py`: add translations for new console strings.
+## 6. Configuration & Extensibility
+- **`config.py`** – logger path, default depth/URL caps, crawler knobs.
+- **`waf_fingerprints.yaml`** – extend to capture new vendors or custom appliances.
+- **`payloads.yml`** – merge custom payload sets (per context).
+- **`i18n.py`** – add phrases when extending CLI dialogue.
+- **`docs/`** – store internal evaluation notes or compliance addenda.
 
 ## 7. Operating the CLI
-### 7.1 Language Prompt
-Upon launch the CLI displays available languages (English/Indonesian). Responses persist for the current run.
-
-### 7.2 Core Command Syntax
+### 7.1 Syntax
 ```bash
 python main.py [OPTIONS] <target_url>
 ```
 
-### 7.3 Frequently Used Options
+### 7.2 Common Options
 | Flag | Description |
 |------|-------------|
-| `--mode {quick,deep}` | Choose between static or Playwright crawler. |
+| `--mode {quick,deep}` | Static vs Playwright crawler. |
 | `--max-urls N` | Limit total discovered URLs. |
-| `--depth N` | Recursion depth guard for the crawler. |
-| `--payloads FILE` | Merge payloads from YAML file. |
-| `--cookie "name=value; ..."` | Inject session cookies. |
-| `--manual-login` | Launch headful Playwright for manual authentication. |
-| `--login-url URL` | Login page used with manual login capture. |
-| `--username`, `--password` | Credentials for scripted login (deep mode). |
-| `--user-selector`, `--pass-selector`, `--submit-selector` | Customise login form selectors. |
-| `--graphql` | Enable GraphQL endpoint reconnaissance. |
-| `--api-key KEY` | Supply Google GenAI key (overrides env variable). |
-| `--summary-only` | Suppress verbose process logs until final summary. |
-| `--workers N` | Set thread pool size for payload execution. |
-| `--insecure` | Disable TLS verification (use with caution). |
+| `--depth N` | BFS depth guard. |
+| `--payloads FILE` | Merge payload YAML. |
+| `--cookie "key=value;..."` | Inject cookies. |
+| `--manual-login` | Headful session capture. |
+| `--login-url URL` | Login page for manual capture. |
+| `--username`, `--password` | Scripted credentials (deep mode). |
+| `--user-selector`, `--pass-selector`, `--submit-selector` | Custom login selectors. |
+| `--graphql` | Enable GraphQL reconnaissance. |
+| `--api-key KEY` | Supply Gemini key (overrides env). |
+| `--summary-only` | Suppress intermediate noise. |
+| `--workers N` | Thread pool for payloads. |
+| `--insecure` | Disable TLS verification. |
 
-### 7.4 Example Workflows
-1. **Quick reconnaissance**
+### 7.3 Cookbook Workflows
+1. **Rapid Recon**
    ```bash
    python main.py --mode quick --max-urls 60 --depth 4 https://target.tld
    ```
-2. **Deep scan + manual login + GraphQL**
+2. **Deep Scan + Manual Login + GraphQL**
    ```bash
    python main.py \
      --mode deep \
@@ -209,198 +206,198 @@ python main.py [OPTIONS] <target_url>
      --depth 6 \
      https://portal.tld
    ```
-3. **AI triage**
+3. **Gemini Triage Session**
    ```bash
    set GENAI_API_KEY=your-google-genai-key
    python main.py --mode deep --api-key %GENAI_API_KEY% https://app.tld
    ```
 
-### 7.5 Interacting with JS Analysis Menu
-After parameter testing, CLI prints a ranked table of external JS files (score based on sinks, contexts, size). Operator may:
-- View quick summary (sink labels and snippets).
-- Run AI analysis on selected files (Gemini required).
-- Skip files individually.
+### 7.4 JS Analysis Menu
+- Ranked by sink count, context diversity, and file size.
+- Options: quick summary, full Gemini review, or skip per file.
+- Quick summary displays top sink labels and truncated snippets.
 
-## 8. WAF-Aware Operation
-- Detected vendor information includes origin, confidence, challenge type (JS, CAPTCHA), safe RPS, and backoff recommendations.
-- CLI prompts whether to continue; rejecting aborts the scan.
-- Payload strategy adapts (short payloads, avoidance of inline handlers) based on vendor metadata.
-- `network.py` enforces throttle globally to minimise blocking.
+## 8. Payload & Testing Strategy
+- **Fingerprint-Driven** – baseline reflections classify characters as filtered, encoded, or reflected.
+- **Context Sequencing** – payloads escalate from benign reflections to DOM execution and alert-based detection.
+- **WAF Adjustments** – short payloads, attribute minimisation, inline-handler avoidance triggered by WAF profile.
+- **Dynamic Verification** – runtime event triggers, timers, storage, and location-based sinks validated via Playwright.
 
-## 9. AI-Assisted Analysis
-- `ai_analysis.py` builds multi-part prompts containing:
-  - Prettified HTML (trimmed to `max_html_bytes`).
-  - Sanitiser summary map.
-  - Runtime sink findings.
-  - Inline/external JS snippets prioritised by sink density.
-- Rich output sections include summary, evidence, exploit paths, payload ladders, mitigations, and validation steps.
-- Users can rerun analysis with refreshed JS or ask follow-up questions directly from the CLI.
+## 9. WAF-Aware Workflow
+- Vendor metadata includes origin, confidence, challenge type, safe RPS, and recommended backoff.
+- CLI prompt allows aborting scans on sensitive infrastructure.
+- `network.py` enforces throttle globally; payload engine applies bypass tactics.
 
-## 10. Resilience Scoring & Reporting
-- Score (0–100) reflects presence of defences (CSP, Trusted Types, DOM sanitisation) versus confirmed payloads.
-- Checklist summarises actionable improvements (e.g., enable nonce-based CSP, enforce Trusted Types).
-- Pairs with AI summaries for executive reporting.
+## 10. Gemini AI Companion
+- Prompt includes HTML snapshots, sanitiser map, runtime findings, and curated JS snippets.
+- Rich panels summarise: high-level risk, evidence, ranked exploit paths, payload ladder, mitigations, validation plan.
+- Follow-up loop enables repeated analysis with refreshed JS or ad-hoc questions.
 
-## 11. Logs, Data Hygiene, and Exporting
-- Logs reside in `logs/` (per-run timestamped files). Clear directory before distribution.
-- Playwright storage (`cookies.json`, storage states) may contain secrets—store securely.
-- Export AI panels or resilience outputs by copying console output or redirecting CLI to a log file (`python main.py ... | tee run.log`).
+## 11. Resilience Metrics & Reporting
+- Score (0–100) summarises observed defences vs confirmed issues.
+- Checklist items highlight immediate improvements.
+- Pair output with AI summaries for stakeholder reporting.
 
-## 12. Troubleshooting & FAQ
+## 12. Logs, Data Hygiene & Export
+- Per-run logs under `logs/`; purge before sharing.
+- Playwright storage (`cookies.json`, storage state) may contain secrets.
+- Export Rich panels or resilience summary via copy/paste or `tee` piping.
+
+## 13. Troubleshooting & FAQ
 | Problem | Resolution |
 |---------|------------|
-| WAF fingerprint not detected | Extend `waf_fingerprints.yaml` with new header/body signatures. |
-| Playwright launch failure | Reinstall browsers (`python -m playwright install chromium`). |
-| Gemini module import error | `pip install google-genai` or run without `--api-key`. |
-| Excessive false positives | Review context manually, tune payload sets in `payloads.yml`. |
-| Scan too slow due to WAF | Accept throttle prompts, lower `--max-urls`, or run in quick mode first. |
-| Logs locked on Windows | Stop the scan (Ctrl+C); handles release on exit. |
+| WAF fingerprint missing | Extend `waf_fingerprints.yaml` with new regex signatures. |
+| Playwright launch failure | `python -m playwright install chromium`. |
+| Gemini import error | `pip install google-genai` or omit `--api-key`. |
+| High false positives | Review context, tune `payloads.yml`. |
+| Scan throttled by WAF | Accept suggested RPS, lower `--max-urls`, or start in quick mode. |
+| Locked logs on Windows | Stop scan (Ctrl+C); file handle closes on exit. |
 
-## 13. Roadmap & Contribution Guidelines
-- Planned enhancements: automated OAST callbacks, remote fingerprint feeds, HTML/SARIF report exporters, CI smoke-test pipeline.
-- Contributions via pull request are welcome; please run `ruff`, `mypy`, and relevant tests before submitting.
-- Extend translations in `i18n.py` when adding new console output.
+## 14. Roadmap & Contributions
+- Upcoming: automated OAST callbacks, remote fingerprint feeds, HTML/SARIF report exporters, CI smoke-test pipeline.
+- Contributions welcome: run `ruff`, `mypy`, relevant tests before PR; add translations to `i18n.py` as needed.
 
-## 14. Legal Notice
-Use this toolkit only against systems you own or have explicit written permission to test. You are responsible for complying with applicable laws, regulations, and contracts. MerdekaSiberLab and contributors accept no liability for misuse or resulting damages.
+## 15. Legal Notice
+Operate only on systems you own or have explicit written permission to test. Compliance with applicable laws, regulations, and contracts rests with you. MerdekaSiberLab and contributors disclaim liability for misuse or resulting damages.
 
 ---
 
-# XSS Scanner – Versi Bahasa Indonesia
+# XSSSGENAI – Versi Bahasa Indonesia
+
+> **Misi**: Menyajikan asesmen XSS yang dapat diulang dan kaya insight pada aplikasi modern melalui payload kontekstual, crawling adaptif, intelijen WAF, dan triase Gemini.
 
 ## Daftar Isi
-1. [Pendahuluan](#1-pendahuluan)
-2. [Kemampuan Utama](#2-kemampuan-utama)
-3. [Gambaran Arsitektur](#3-gambaran-arsitektur)
-4. [Alur Proses Ujung-ke-Ujung](#4-alur-proses-ujung-ke-ujung)
-5. [Instalasi & Persiapan Lingkungan](#5-instalasi--persiapan-lingkungan)
-6. [Konfigurasi & Flag Fitur](#6-konfigurasi--flag-fitur)
+1. [Ringkasan Singkat](#1-ringkasan-singkat)
+2. [Kemampuan Inti](#2-kemampuan-inti)
+3. [Arsitektur & Peta Modul](#3-arsitektur--peta-modul)
+4. [Alur Proses](#4-alur-proses)
+5. [Instalasi & Setup Lingkungan](#5-instalasi--setup-lingkungan)
+6. [Konfigurasi & Ekstensibilitas](#6-konfigurasi--ekstensibilitas)
 7. [Mengoperasikan CLI](#7-mengoperasikan-cli)
-8. [Operasi Sadar-WAF](#8-operasi-sadar-waf)
-9. [Analisis Berbantuan AI](#9-analisis-berbantuan-ai)
-10. [Skor Ketahanan & Pelaporan](#10-skor-ketahanan--pelaporan)
-11. [Log, Kebersihan Data, dan Ekspor](#11-log-kebersihan-data-dan-ekspor)
-12. [Pemecahan Masalah & FAQ](#12-pemecahan-masalah--faq)
-13. [Rencana & Panduan Kontribusi](#13-rencana--panduan-kontribusi)
-14. [Catatan Hukum](#14-catatan-hukum)
+8. [Strategi Payload & Pengujian](#8-strategi-payload--pengujian)
+9. [Alur Sadar-WAF](#9-alur-sadar-waf)
+10. [Pendamping AI Gemini](#10-pendamping-ai-gemini)
+11. [Metri Ketahanan & Pelaporan](#11-metri-ketahanan--pelaporan)
+12. [Log, Kebersihan Data & Ekspor](#12-log-kebersihan-data--ekspor)
+13. [Troubleshooting & FAQ](#13-troubleshooting--faq)
+14. [Roadmap & Kontribusi](#14-roadmap--kontribusi)
+15. [Catatan Hukum](#15-catatan-hukum)
 
 ---
 
-## 1. Pendahuluan
-**XSS Scanner** dari MerdekaSiberLab merupakan toolkit profesional untuk menemukan, memvalidasi, dan memprioritaskan kerentanan Cross-Site Scripting (XSS) pada aplikasi web modern. Toolkit ini menggabungkan crawling statis-dinamis, memahami respon WAF, mengeksekusi kampanye payload, dan (opsional) memanfaatkan Google Gemini untuk merangkum temuan.
+## 1. Ringkasan Singkat
+| Item | Detail |
+|------|--------|
+| Nama Produk | **XSSSGENAI** (inisiatif MerdekaSiberLab Access-X) |
+| Fokus | Penemuan, verifikasi, dan prioritas celah XSS |
+| Target | Aplikasi SSR, SPA, maupun hybrid |
+| Mode Eksekusi | `quick` (crawler statis) / `deep` (crawler Playwright) |
+| Bahasa | Inggris & Bahasa Indonesia (dipilih saat startup) |
+| Integrasi AI | Opsional Google Gemini (`GENAI_API_KEY`) |
 
-Gunakan alat ini ketika Anda membutuhkan:
-- rekonsiliasi XSS yang dapat diulang pada aplikasi SSR maupun SPA;
-- penyesuaian payload terhadap pola sanitasi yang terdeteksi;
-- inspeksi DOM runtime beserta penilaian ketahanan;
-- alur kerja terarah bagi red team, engineer keamanan ofensif, dan tim DevSecOps.
+## 2. Kemampuan Inti
+- **Crawling Hibrida** – kombinasi traversing HTML deterministik dan sesi Playwright untuk SPA, alur login, konten dinamis.
+- **Mesin Payload Kontekstual** – `payload_strategy.py` mengidentifikasi perilaku sanitasi dan menyesuaikan payload untuk konteks HTML, atribut, JS, URL, CSS, SVG.
+- **Dynamic DOM Tester** – `dynamic_dom_tester.py` memanfaatkan Playwright untuk menangkap mutasi sink runtime, event handler, serta saluran alert.
+- **Deteksi & Panduan WAF** – `waf_detector.py` menggabungkan sinyal header, cookie, body guna mengenali vendor, batas throttle, dan saran bypass.
+- **Inteligensi Gemini** – `ai_analysis.py` menyusun prompt bersih untuk Google GenAI, memunculkan panel Rich berisi ranking sink, ladder payload, dan mitigasi.
+- **Rekon GraphQL** – `graphql_scanner.py` memetakan endpoint, melakukan introspeksi, serta fuzzing argumen resolver untuk permukaan XSS.
+- **Skor Ketahanan** – `tester.py` + `resilience.py` mengukur ketahanan lewat CSP/Trusted Types, cakupan sink, dan payload terkonfirmasi.
 
-## 2. Kemampuan Utama
-| Kemampuan | Deskripsi |
-|-----------|-----------|
-| Crawling Hibrida | Mengombinasikan parsing HTML dengan eksplorasi Playwright untuk menaklukkan SPA, alur login, dan konten dinamis. |
-| Mesin Payload Kontekstual | `payload_strategy.py` menandai perilaku sanitasi (HTML, atribut, string JS, URL, CSS, SVG) dan menyiapkan payload yang sesuai konteks. |
-| Dynamic DOM Tester | `dynamic_dom_tester.py` merekam sink runtime, event handler, mutasi DOM, serta alert headless untuk memverifikasi jalur eksekusi. |
-| Deteksi WAF & Panduan Bypass | `waf_detector.py` memeriksa header, cookie, body untuk mengenali vendor, menyarankan throttle, dan mengirim hint ke mesin payload. |
-| Integrasi Gemini AI | `ai_analysis.py` menyusun prompt HTML, informasi CSP, serta snippet JS prioritas untuk Google GenAI; menghasilkan panel ringkas berisi sink, jalur eksploit, mitigasi, dan langkah validasi. |
-| Pemindaian GraphQL | `graphql_scanner.py` memetakan endpoint, melakukan introspeksi, dan melakukan fuzzing resolver guna mencari vektor XSS. |
-| Skor Ketahanan | `tester.py` + `resilience.py` menggabungkan sinyal proteksi (CSP, Trusted Types, sink termutasi) ke dalam skor numerik lengkap dengan daftar tindakan. |
-| CLI Multibahasa | `i18n.py` menyediakan pengalaman perintah dalam bahasa Indonesia/Inggris (dipilih saat startup). |
-
-## 3. Gambaran Arsitektur
+## 3. Arsitektur & Peta Modul
 ```
-cli.py                  # Antarmuka operator, orkestrasi, i18n
-main.py                 # Pembungkus entry point minimal
-network.py              # Manajemen sesi, pacing request, anti-WAF camo
-waf_detector.py         # Heuristik fingerprint vendor + saran bypass
-payload_strategy.py     # Katalog payload + logika fingerprint sanitiser
-dynamic_dom_tester.py   # Instrumentasi Playwright dan harvesting sink
-tester.py               # Pipeline eksekusi payload + skor ketahanan
-ai_analysis.py          # Penyusunan prompt Gemini & panel Rich
-graphql_scanner.py      # Penemuan endpoint, introspeksi, fuzzing resolver
-crawler/                # BFS crawler + varian crawler Playwright
-parsers/                # Ekstraksi konteks (HTML, atribut, JS, DOM)
+cli.py                  # UX CLI, orkestrasi, pemilihan bahasa
+main.py                 # Pembungkus entry minimal
+network.py              # Manajemen sesi, retry, pacing, throttle WAF
+waf_detector.py         # Fingerprint vendor + rencana bypass
+payload_strategy.py     # Fingerprint sanitasi & generator payload
+dynamic_dom_tester.py   # Instrumentasi Playwright untuk sink runtime
+tester.py               # Eksekusi payload, agregasi ketahanan
+ai_analysis.py          # Prompt Gemini, panel Rich
+graphql_scanner.py      # Enumerasi endpoint & fuzz resolver
+crawler/                # Crawler BFS statis + varian Playwright
+parsers/                # Parser konteks (HTML, atribut, JS, DOM)
 docs/                   # Dokumentasi & artefak evaluasi
-waf_fingerprints.yaml   # Pustaka fingerprint WAF yang didukung
-i18n.py                 # Registry terjemahan dan utilitas bantu
+waf_fingerprints.yaml   # Signature vendor WAF
+i18n.py                 # Registry terjemahan & utilitas bantu
 ```
 
 ### 3.1 Tanggung Jawab Modul
-| Modul | Tanggung Jawab Utama | Input Penting | Output |
-|-------|----------------------|--------------|--------|
-| `cli.py` | Alur kerja operator, prompt pilihan, rendering console | Argumen CLI, label i18n, modul jaringan/penguji | Tabel/panel Rich, hasil orkestrasi pindai |
-| `network.py` | Sesi HTTP, retry, jitter, throttle | Session requests, profil WAF | Objek respons, loop request terpacing |
-| `payload_strategy.py` | Menghasilkan kampanye payload per konteks | Fingerprint sanitasi, hint WAF | Template payload untuk `tester.py` |
-| `dynamic_dom_tester.py` | Mengumpulkan sink runtime via Playwright | URL target, hook payload | Inventori sink, temuan runtime |
-| `tester.py` | Eksekusi payload, agregasi bukti ketahanan | Set payload, temuan DOM | Hit XSS terkonfirmasi, ringkasan ketahanan |
-| `ai_analysis.py` | Menyusun prompt Gemini, memparsing respons | Snapshot HTML, snippet JS, data runtime | Panel AI terstruktur, ringkasan JS |
-| `graphql_scanner.py` | Penemuan & fuzzing GraphQL | URL dasar, session request | Daftar endpoint, laporan introspeksi |
+| Modul | Input | Logika Inti | Output |
+|-------|-------|-------------|--------|
+| `cli.py` | Argumen CLI, pilihan bahasa | Mengorkestrasi alur scan, menampilkan Rich UI | Hasil payload, panel AI, ringkasan ketahanan |
+| `network.py` | Konfigurasi sesi, profil WAF | Pacing request, jitter, retry/backoff | Respons HTTP dengan throttle |
+| `payload_strategy.py` | Peta sanitasi, hint WAF | Menyesuaikan template payload per konteks | Set payload spesifik konteks |
+| `dynamic_dom_tester.py` | URL target, konteks Playwright | Evaluasi headless, menangkap sink | Temuan runtime (event/mutasi) |
+| `tester.py` | Set payload, data runtime | Menjalankan kampanye payload, mencatat hit | Vuln terkonfirmasi, sinyal ketahanan |
+| `ai_analysis.py` | Snapshot HTML, snippet JS, runtime JSON | Menyusun prompt Gemini, merender Rich panel | Analisis terstruktur (ringkasan, exploit path, dsb.) |
+| `graphql_scanner.py` | URL dasar, sesi | Enumerasi endpoint, introspeksi skema | Temuan GraphQL & hasil fuzz |
 
-## 4. Alur Proses Ujung-ke-Ujung
-1. **Parsing Argumen & Pemilihan Bahasa** – CLI menerima opsi dan memanggil `_prompt_language_choice()`.
-2. **Setup Logging** – Rich console + file handler diinisialisasi; `--summary-only` mengendalikan verbositas.
-3. **Sesi Jaringan** – `network.session` dikonfigurasi (cookie, header, proxy). `--cookie` disuntikkan di tahap ini.
-4. **Deteksi WAF (Opsional)** – `waf_detector.detect()` menjalankan probe HEAD/GET, mencocokkan vendor, dan memberi saran RPS/backoff. Operator memutuskan lanjut atau berhenti.
-5. **Autentikasi (Opsional)** – Bisa via login headful (`--manual-login`) atau kredensial scripted (mode deep).
-6. **Crawling**
-   - **Mode Quick**: crawler BFS HTML mengumpulkan tautan/form/script hingga batas `--depth` dan `--max-urls`.
-   - **Mode Deep**: crawler Playwright menavigasi route SPA, konten dinamis, serta state kompleks.
-7. **Inventaris Parameter & JS** – `tester.py` mengkurasi kandidat parameter; crawler mengumpulkan URL JS eksternal untuk diprioritaskan.
-8. **Profiling Sanitasi** – Setiap parameter diuji pemantulan baseline guna menyusun fingerprint (`_render_sanitizer_overview()`).
-9. **Kampanye Payload** – `payload_strategy.py` dan `tester.py` mengeksekusi payload multi-fase sesuai konteks.
-10. **Dynamic DOM Testing** – Playwright merender halaman kandidat, mencatat sink/event/alert pada `runtime_findings`.
-11. **Analisis AI (Opsional)** – Bila API key tersedia dan pengguna menyetujui, `ai_analysis.py` mengirim HTML/JS/temuan runtime ke Gemini untuk panel ringkas.
-12. **Penilaian Ketahanan** – `tester.resilience_summary()` menggabungkan sinyal proteksi menjadi skor 0–100 dengan daftar tindakan.
-13. **Pemindaian GraphQL (Opsional)** – `graphql_scanner` memetakan endpoint, introspeksi skema, dan melakukan fuzzing resolver.
-14. **Ringkasan Akhir & Log** – CLI menampilkan payload tereksekusi, skor ketahanan, panel AI, lalu menulis log terperinci ke `logs/`.
+## 4. Alur Proses
+1. **Input & Pilihan Bahasa** – parsing flag CLI, menampilkan bahasa, mengatur cakupan terjemahan via `_prompt_language_choice()`.
+2. **Konfigurasi Logging** – inisialisasi Rich console/file sesuai `--summary-only`.
+3. **Persiapan Sesi** – mengonfigurasi `network.session` (cookie, header, proxy, UA).
+4. **Fingerprint WAF** – opsi HEAD/GET melalui `waf_detector.detect()`; menampilkan metadata vendor, RPS aman, backoff, hint bypass.
+5. **Persiapan Autentikasi** – login headful Playwright (`--manual-login`) atau kredensial scripted menyiapkan sesi autentik.
+6. **Tahap Crawling**
+   - *Mode Quick*: BFS statis menelusuri anchor/form/script hingga `--depth`, `--max-urls`.
+   - *Mode Deep*: crawler Playwright menelusuri route SPA, menangkap state DOM dinamis.
+7. **Inventaris** – mengumpulkan parameter dan target JS eksternal.
+8. **Fingerprint Sanitasi** – uji refleksi baseline untuk klasifikasi karakter (filtered, encoded, reflected).
+9. **Eksekusi Payload** – kampanye payload kontekstual via `tester.py`, memisahkan refleksi vs eksekusi.
+10. **Dynamic DOM Pass** – Playwright headless memeriksa sink runtime, event handler, alert.
+11. **Analisis Gemini Opsional** – `ai_analysis.py` memproses HTML/JS/runtime, menampilkan panel Rich.
+12. **Agregasi Ketahanan** – menghimpun sinyal proteksi dan payload sukses menjadi skor 0–100.
+13. **Modul GraphQL Opsional** – enumerasi endpoint, introspeksi skema, fuzz argumen resolver.
+14. **Ringkasan & Logging** – menampilkan payload tereksekusi, checklist ketahanan, output AI; menulis log ke `logs/`.
 
 ### 4.1 Diagram Alir
 ```mermaid
 flowchart TD
-    A[Mulai CLI] --> B[Parse Argumen + Pilih Bahasa]
+    A[Start CLI] --> B[Parse Argumen + Pilih Bahasa]
     B --> C[Setup Logging & Sesi]
-    C --> D[Deteksi WAF]
+    C --> D{WAF Terdeteksi?}
     D -->|Batal| Z[Keluar]
-    D -->|Lanjut| E[Persiapan Login/Sesi]
+    D -->|Lanjut| E[Persiapan Autentikasi]
     E --> F{Mode}
     F -->|Quick| G[Crawler Statis]
     F -->|Deep| H[Crawler Playwright]
-    G --> I[Inventaris Parameter & JS]
+    G --> I[Inventaris Parameter/JS]
     H --> I
-    I --> J[Profiling Sanitasi]
+    I --> J[Fingerprint Sanitasi]
     J --> K[Kampanye Payload]
     K --> L[Dynamic DOM Tester]
-    L --> M{AI Aktif?}
-    M -->|Ya| N[Analisis Gemini]
+    L --> M{Gemini Aktif?}
+    M -->|Ya| N[Panel Gemini]
     M -->|Tidak| O[Lewati]
     N --> P[Skor Ketahanan]
     O --> P
     P --> Q{GraphQL?}
-    Q -->|Ya| R[Pemindaian GraphQL]
+    Q -->|Ya| R[Scanner GraphQL]
     Q -->|Tidak| S[Ringkasan]
     R --> S
-    S --> T[Log + Selesai]
+    S --> T[Simpan Log]
 ```
 
-## 5. Instalasi & Persiapan Lingkungan
+## 5. Instalasi & Setup Lingkungan
 ### 5.1 Kloning & Virtual Environment
 ```bash
 git clone https://github.com/merdekasiberlab/xsscanner.git
 cd xsscanner
 python -m venv .venv
-# Windows PowerShell". .venv/Scripts/Activate.ps1"
+# Windows PowerShell"). .venv/Scripts/Activate.ps1"
 # macOS/Linux
 source .venv/bin/activate
 ```
 
-### 5.2 Instalasi Dependensi
+### 5.2 Dependensi
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 python -m playwright install chromium
 ```
 
-### 5.3 Tooling Opsional untuk Pengembang
+### 5.3 Utilitas Pengembang
 ```bash
 pip install -r requirements-dev.txt
 ruff check .
@@ -409,51 +406,49 @@ pytest -m "not playwright"
 ```
 
 ### 5.4 Variabel Lingkungan
-| Variabel | Tujuan |
+| Variabel | Fungsi |
 |----------|--------|
 | `GENAI_API_KEY` | API key Google GenAI untuk integrasi Gemini. |
-| `HTTP_PROXY` / `HTTPS_PROXY` | Konfigurasi proxy keluar. |
+| `HTTP_PROXY`, `HTTPS_PROXY` | Konfigurasi proxy keluar. |
 | `XSSCANNER_USER_AGENT` | Mengganti user-agent default scanner. |
 
-## 6. Konfigurasi & Flag Fitur
-- `config.py`: menyimpan default kedalaman crawler, batas URL, lokasi log.
-- `waf_fingerprints.yaml`: perluas untuk mengenali vendor/custom appliance.
-- `payloads.yml`: sediakan payload kustom terkelompok per konteks.
-- `i18n.py`: tambahkan terjemahan untuk output console baru.
+## 6. Konfigurasi & Ekstensibilitas
+- **`config.py`** – jalur log, default kedalaman/batas URL, parameter crawler.
+- **`waf_fingerprints.yaml`** – perluas untuk vendor atau perangkat kustom.
+- **`payloads.yml`** – gabungkan payload kustom per konteks.
+- **`i18n.py`** – tambahkan kosakata baru untuk dialog CLI.
+- **`docs/`** – simpan catatan evaluasi internal atau lampiran kepatuhan.
 
 ## 7. Mengoperasikan CLI
-### 7.1 Prompt Bahasa
-Saat startup, CLI menampilkan bahasa yang tersedia (Indonesia/Inggris). Pilihan berlaku selama sesi berjalan.
-
-### 7.2 Sintaks Dasar Perintah
+### 7.1 Sintaks
 ```bash
 python main.py [OPSI] <url_target>
 ```
 
-### 7.3 Opsi yang Sering Digunakan
-| Flag | Deskripsi |
-|------|-----------|
+### 7.2 Opsi Umum
+| Flag | Penjelasan |
+|------|------------|
 | `--mode {quick,deep}` | Memilih crawler statis atau Playwright. |
-| `--max-urls N` | Membatasi jumlah URL yang ditemui. |
-| `--depth N` | Batas kedalaman rekursi. |
-| `--payloads FILE` | Menggabungkan payload kustom dari YAML. |
-| `--cookie "nama=nilai; ..."` | Menyuntikkan cookie sesi. |
-| `--manual-login` | Membuka Playwright headful untuk login manual. |
+| `--max-urls N` | Batas total URL yang ditemukan. |
+| `--depth N` | Pengaman kedalaman BFS. |
+| `--payloads FILE` | Menggabungkan YAML payload. |
+| `--cookie "k=v;..."` | Menyuntikkan cookie. |
+| `--manual-login` | Capture sesi headful. |
 | `--login-url URL` | Halaman login untuk capture manual. |
-| `--username`, `--password` | Kredensial untuk login otomatis (mode deep). |
-| `--user-selector`, `--pass-selector`, `--submit-selector` | Menyesuaikan selector form login. |
-| `--graphql` | Mengaktifkan pemindaian GraphQL. |
-| `--api-key KEY` | Menyediakan API key Google GenAI (override env). |
-| `--summary-only` | Menyembunyikan proses detail hingga ringkasan akhir. |
-| `--workers N` | Mengatur jumlah thread eksekusi payload. |
-| `--insecure` | Menonaktifkan verifikasi TLS (gunakan hati-hati). |
+| `--username`, `--password` | Kredensial ter-script (mode deep). |
+| `--user-selector`, `--pass-selector`, `--submit-selector` | Menyesuaikan selector login. |
+| `--graphql` | Aktifkan pemindaian GraphQL. |
+| `--api-key KEY` | Menyediakan key Gemini (override env). |
+| `--summary-only` | Menyembunyikan noise sementara. |
+| `--workers N` | Thread pool eksekusi payload. |
+| `--insecure` | Menonaktifkan verifikasi TLS. |
 
-### 7.4 Contoh Alur
-1. **Rekonsiliasi cepat**
+### 7.3 Skenario Praktis
+1. **Rekon cepat**
    ```bash
    python main.py --mode quick --max-urls 60 --depth 4 https://target.tld
    ```
-2. **Pemindaian mendalam + login manual + GraphQL**
+2. **Scan mendalam + login manual + GraphQL**
    ```bash
    python main.py \
      --mode deep \
@@ -465,59 +460,58 @@ python main.py [OPSI] <url_target>
      --depth 6 \
      https://portal.tld
    ```
-3. **Triase AI**
+3. **Sesi triase Gemini**
    ```bash
    set GENAI_API_KEY=api-key-anda
    python main.py --mode deep --api-key %GENAI_API_KEY% https://app.tld
    ```
 
-### 7.5 Menu Analisis JS
-Sesudah pengujian parameter, CLI menampilkan tabel peringkat file JS eksternal (skor berdasarkan jumlah sink, konteks, ukuran). Operator dapat:
-- Melihat ringkasan cepat (label sink dan snippet).
-- Menjalankan analisis AI pada file terpilih (butuh Gemini).
-- Melewati file tertentu.
+### 7.4 Menu Analisis JS
+- Diperingkat oleh jumlah sink, keragaman konteks, ukuran file.
+- Opsi: ringkasan cepat, evaluasi Gemini penuh, atau lewati per file.
+- Ringkasan cepat menampilkan label sink dan snippet terpotong.
 
-## 8. Operasi Sadar-WAF
-- Informasi vendor mencakup origin, confidence, jenis tantangan (JS, CAPTCHA), RPS aman, dan rekomendasi backoff.
-- CLI menanyakan apakah ingin lanjut; menolak berarti mematahkan pemindaian.
-- Strategi payload menyesuaikan (payload pendek, hindari handler inline) sesuai metadata vendor.
-- `network.py` menerapkan throttle global untuk meminimalkan blokir.
+## 8. Strategi Payload & Pengujian
+- **Berbasis Fingerprint** – refleksi baseline mengklasifikasi karakter (filtered, encoded, reflected).
+- **Sequencing Kontekstual** – payload meningkat bertahap dari refleksi aman hingga eksekusi DOM.
+- **Penyesuaian WAF** – payload pendek, minimisasi atribut, hindari handler inline berdasar profil WAF.
+- **Verifikasi Dinamis** – event runtime, timer, storage, dan sink berbasis lokasi divalidasi via Playwright.
 
-## 9. Analisis Berbantuan AI
-- `ai_analysis.py` menyusun prompt multi-bagian yang mencakup:
-  - HTML yang diprettify (dipangkas sesuai `max_html_bytes`).
-  - Ringkasan peta sanitasi.
-  - Temuan sink runtime.
-  - Snippet JS inline/eksternal yang diprioritaskan berdasarkan kepadatan sink.
-- Output Rich menampilkan bagian: ringkasan, bukti, jalur eksploit, ladder payload, mitigasi, dan langkah validasi.
-- Pengguna dapat menjalankan ulang analisis dengan JS yang direfresh atau mengajukan pertanyaan lanjutan langsung dari CLI.
+## 9. Alur Sadar-WAF
+- Metadata vendor mencakup origin, confidence, jenis tantangan, RPS aman, rekomendasi backoff.
+- CLI memberi opsi berhenti untuk infrastruktur sensitif.
+- `network.py` menerapkan throttle global; mesin payload mengaktifkan taktik bypass.
 
-## 10. Skor Ketahanan & Pelaporan
-- Skor (0–100) menggambarkan keberadaan kontrol (CSP, Trusted Types, sanitasi DOM) dibanding payload yang berhasil.
-- Checklist merangkum tindakan (contoh, aktifkan CSP berbasis nonce, terapkan Trusted Types).
-- Dipadukan dengan ringkasan AI untuk laporan eksekutif.
+## 10. Pendamping AI Gemini
+- Prompt memuat snapshot HTML, peta sanitasi, temuan runtime, snippet JS terkurasi.
+- Panel Rich merangkum: ringkasan risiko, bukti, jalur eksploit, ladder payload, mitigasi, rencana validasi.
+- Loop tindak lanjut memungkinkan analisis ulang dengan JS terbaru atau pertanyaan adhoc.
 
-## 11. Log, Kebersihan Data, dan Ekspor
-- Log berada di `logs/` (file bertimestamp per run). Bersihkan sebelum dibagikan.
-- State Playwright (`cookies.json`, storage) berpotensi berisi rahasia—simpan aman.
-- Ekspor panel AI atau ringkasan ketahanan dengan menyalin output console atau mengalihkan CLI ke file log (`python main.py ... | tee run.log`).
+## 11. Metri Ketahanan & Pelaporan
+- Skor (0–100) merangkum proteksi yang teramati vs payload sukses.
+- Checklist menyoroti langkah cepat.
+- Gabungkan dengan ringkasan AI untuk laporan stakeholder.
 
-## 12. Pemecahan Masalah & FAQ
+## 12. Log, Kebersihan Data & Ekspor
+- Log per run di `logs/`; bersihkan sebelum dibagikan.
+- Penyimpanan Playwright (`cookies.json`, storage state) mungkin memuat rahasia.
+- Ekspor panel Rich atau ringkasan ketahanan via copy/paste atau piping `tee`.
+
+## 13. Troubleshooting & FAQ
 | Masalah | Solusi |
 |---------|--------|
-| Fingerprint WAF tidak dikenali | Tambahkan signature baru ke `waf_fingerprints.yaml`. |
-| Playwright gagal diluncurkan | Instal ulang browser (`python -m playwright install chromium`). |
+| Fingerprint WAF belum ada | Perluas `waf_fingerprints.yaml` dengan signature baru. |
+| Playwright gagal launch | `python -m playwright install chromium`. |
 | Modul Gemini error | `pip install google-genai` atau jalankan tanpa `--api-key`. |
-| False positive berlebih | Tinjau konteks manual, sesuaikan payload di `payloads.yml`. |
-| Pemindaian lambat karena WAF | Ikuti saran throttle, turunkan `--max-urls`, atau jalankan mode quick terlebih dahulu. |
-| Log terkunci di Windows | Hentikan pemindaian (Ctrl+C); handle akan dilepas saat keluar. |
+| False positive tinggi | Tinjau konteks, sesuaikan `payloads.yml`. |
+| Scan melambat karena WAF | Ikuti RPS yang disarankan, turunkan `--max-urls`, mulai dari mode quick. |
+| Log terkunci (Windows) | Hentikan scan (Ctrl+C); handle tertutup saat exit. |
 
-## 13. Rencana & Panduan Kontribusi
-- Pengembangan berikut: integrasi callback OAST otomatis, feed fingerprint jarak jauh, eksportir laporan HTML/SARIF, pipeline smoke-test CI.
-- Kontribusi via pull request sangat diapresiasi; sertakan hasil `ruff`, `mypy`, serta pengujian terkait.
-- Tambahkan terjemahan di `i18n.py` bila menambahkan output console baru.
+## 14. Roadmap & Kontribusi
+- Agenda: integrasi callback OAST otomatis, feed fingerprint jarak jauh, exporter HTML/SARIF, pipeline smoke-test CI.
+- Kontribusi via pull request: jalankan `ruff`, `mypy`, dan pengujian terkait; tambahkan terjemahan di `i18n.py` bila perlu.
 
-## 14. Catatan Hukum
-Gunakan toolkit ini hanya pada sistem milik sendiri atau yang memiliki izin tertulis eksplisit. Kepatuhan terhadap hukum, regulasi, dan kontrak sepenuhnya tanggung jawab pengguna. MerdekaSiberLab beserta kontributor tidak bertanggung jawab atas penyalahgunaan atau kerugian yang timbul.
+## 15. Catatan Hukum
+Gunakan toolkit hanya pada sistem milik sendiri atau yang memiliki izin tertulis eksplisit. Kepatuhan hukum, regulasi, dan kontrak sepenuhnya berada pada pengguna. MerdekaSiberLab beserta kontributor tidak menanggung tanggung jawab atas penyalahgunaan atau kerugian yang timbul.
 
 ---
