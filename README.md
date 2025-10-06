@@ -1,6 +1,5 @@
-<div align="center">
+﻿<div align="center">
 
-<!-- TODO: Replace `docs/assets/xss-banner.gif` with the final animated hero banner -->
 <img src="docs/assets/xssgenai.jpg" alt="XSS Scanner Hero Banner" width="820" />
 
 ![XSSGENAI - Merdeka Siber](https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&pause=1200&color=F70000&center=true&vCenter=true&width=800&height=100&lines=XSSGENAI+-+Merdeka+Siber;WAF+Aware+%7C+AI-Assisted+%7C+Crawler-Driven)
@@ -9,397 +8,237 @@
 
 ---
 
-# XSS Scanner Documentation (English)
+# XSS Scanner – User Guide / Panduan Pengguna
 
-## 1. Overview
+> **EN:** A bilingual guide for operating the MerdekaSiberLab XSS Scanner.
+>
+> **ID:** Panduan dwibahasa untuk mengoperasikan XSS Scanner MerdekaSiberLab.
 
-The **XSS Scanner** is a full-featured assessment suite focused on cross-site scripting discovery and validation. It combines:
+## Table of Contents / Daftar Isi
+1. [At a Glance / Sekilas](#1-at-a-glance--sekilas)
+2. [Feature Highlights / Sorotan Fitur](#2-feature-highlights--sorotan-fitur)
+3. [Architecture & Components / Arsitektur & Komponen](#3-architecture--components--arsitektur--komponen)
+4. [System Requirements / Prasyarat Sistem](#4-system-requirements--prasyarat-sistem)
+5. [Installation & Setup / Instalasi & Persiapan](#5-installation--setup--instalasi--persiapan)
+6. [Usage Cookbook / Panduan Penggunaan](#6-usage-cookbook--panduan-penggunaan)
+7. [Advanced Capabilities / Fitur Lanjutan](#7-advanced-capabilities--fitur-lanjutan)
+8. [Logs, Reports & Data Hygiene / Log, Laporan & Kebersihan Data](#8-logs-reports--data-hygiene--log-laporan--kebersihan-data)
+9. [Troubleshooting & FAQ / Pemecahan Masalah & FAQ](#9-troubleshooting--faq--pemecahan-masalah--faq)
+10. [Roadmap & Contribution Ideas / Rencana & Ide Kontribusi](#10-roadmap--contribution-ideas--rencana--ide-kontribusi)
+11. [Legal Notice / Catatan Hukum](#11-legal-notice--catatan-hukum)
 
-- **Hybrid crawling**: static HTML parsing plus Playwright-backed dynamic crawling capable of SPA navigation.
-- **Context-aware payload engine** (`payload_strategy.py`): generates adaptive payloads based on sanitization profiles, context hints, and optional WAF plans.
-- **Runtime DOM inspection** (`dynamic_dom_tester.py`): collects sink mutations and verifies execution opportunities in client-rendered content.
-- **Elastic WAF detection** (`waf_detector.py` + `network.py`): fingerprints common vendors, enforces safe RPS, and guides bypass tactics.
-- **AI-assisted triage** (`ai_analysis.py`): integrates with Google GenAI to prioritize findings and suggest remediation when an API key is provided.
-- **GraphQL coverage** (`graphql_scanner.py`): enumerates endpoints, introspects schemas, and fuzzes resolvers for XSS vectors.
-- **Resilience scoring** (`tester.py` + `resilience.py`): aggregates coverage metrics, confidence, and mitigation checklists for reporting.
+---
 
-> **Intended audience:** Red-team operators, security engineers, and QA teams that require repeatable, high-signal XSS assessments on modern applications.
+## 1. At a Glance / Sekilas
+- **EN:** XSS Scanner is a modern assessment suite that discovers, validates, and prioritises cross-site scripting issues across server-rendered and SPA workloads.
+- **ID:** XSS Scanner adalah rangkaian asesmen modern untuk menemukan, memvalidasi, dan memprioritaskan celah XSS pada aplikasi SSR maupun SPA.
 
-## 2. Feature Matrix
+- **EN:** Supports hybrid crawling, runtime DOM inspection, WAF-aware payload strategy, optional Google Gemini analysis, and resilience scoring.
+- **ID:** Mendukung perayapan hibrida, inspeksi DOM runtime, strategi payload sadar-WAF, analisis Gemini opsional, dan penilaian ketahanan.
 
-| Capability | Quick Mode | Deep Mode |
-|------------|------------|-----------|
-| Static crawling | Yes | Yes |
-| Playwright automation | No | Yes |
-| Manual login capture | Manual cookie input only | `--manual-login` + persistent session capture |
-| Dynamic DOM sink tracing | Yes | Yes |
-| AI analysis | Optional (API key) | Optional (API key) |
-| GraphQL probing | Optional (`--graphql`) | Optional (`--graphql`) |
-| WAF fingerprint & throttling | Yes | Yes |
+- **EN:** Designed for red-teamers, security engineers, QA, and DevSecOps teams needing repeatable, high-signal XSS results.
+- **ID:** Dirancang untuk red team, engineer keamanan, QA, serta tim DevSecOps yang membutuhkan hasil XSS yang presisi dan dapat diulang.
 
-## 3. Repository Layout
+## 2. Feature Highlights / Sorotan Fitur
+- **EN:** **Hybrid Crawler** – static HTML parsing plus Playwright-enabled crawling for SPA navigation.
+- **ID:** **Crawler Hibrida** – parsing HTML statis ditambah Playwright untuk menavigasi aplikasi SPA.
 
+- **EN:** **Context-Aware Payload Engine** (`payload_strategy.py`) tailors payloads using sanitisation fingerprints, context hints, and WAF bypass plans.
+- **ID:** **Mesin Payload Kontekstual** (`payload_strategy.py`) menyesuaikan payload dengan fingerprint sanitasi, konteks, dan rencana bypass WAF.
+
+- **EN:** **Dynamic DOM Tester** (`dynamic_dom_tester.py`) observes runtime mutations, events, and sink execution opportunities.
+- **ID:** **Dynamic DOM Tester** (`dynamic_dom_tester.py`) memantau mutasi runtime, event, serta peluang eksekusi sink.
+
+- **EN:** **Gemini AI Analysis** (`ai_analysis.py`) summarises HTML/JS contexts, ranks sinks, and suggests mitigations when a Google GenAI key is provided.
+- **ID:** **Analisis Gemini AI** (`ai_analysis.py`) merangkum konteks HTML/JS, memberi ranking sink, dan menyarankan mitigasi bila tersedia API key Google GenAI.
+
+- **EN:** **WAF Detector** (`waf_detector.py`) fingerprints popular vendors, proposes throttle settings, and hands hints to payload strategy.
+- **ID:** **WAF Detector** (`waf_detector.py`) mengenali vendor populer, menyarankan limitasi request, dan memberi hint ke strategi payload.
+
+- **EN:** **GraphQL Scanner** (`graphql_scanner.py`) enumerates endpoints, validates introspection, and injects XSS vectors into resolvers.
+- **ID:** **GraphQL Scanner** (`graphql_scanner.py`) memetakan endpoint, memvalidasi introspeksi, dan menyuntikkan vektor XSS ke resolver.
+
+- **EN:** **Resilience Score** (`tester.py` + `resilience.py`) aggregates CSP, Trusted Types, and sink coverage to highlight defensive posture.
+- **ID:** **Resilience Score** (`tester.py` + `resilience.py`) menggabungkan CSP, Trusted Types, dan cakupan sink untuk menilai ketahanan.
+
+## 3. Architecture & Components / Arsitektur & Komponen
 ```
-- cli.py                  # Entry point & operator UX
-- main.py                 # Thin wrapper to launch CLI
-- network.py              # HTTP session, jitter, WAF throttle, header camo
-- waf_detector.py         # Fingerprinting heuristics & bypass planner
-- payload_strategy.py     # SuperBypassEngine & sanitization profiling
-- tester.py               # Core testing orchestration & resilience scoring
-- dynamic_dom_tester.py   # Runtime sink detection via headless browser
-- ai_analysis.py          # Optional GenAI integration
-- graphql_scanner.py      # GraphQL endpoint discovery / fuzzing
-- crawler/                # Static & advanced (Playwright) crawler implementations
-- parsers/                # Context parsers for sink classification
-- docs/                   # Additional documentation & evaluation guidance
-- waf_fingerprints.yaml   # Fingerprint definitions for common WAF vendors
+cli.py                  # Operator console & workflow orchestration
+main.py                 # Thin entry point wrapper
+network.py              # Session handling, throttling, header camo, WAF hooks
+waf_detector.py         # Vendor fingerprints & bypass guidance
+dynamic_dom_tester.py   # Playwright-powered DOM instrumentation
+tester.py               # Payload execution pipeline & resilience scoring
+payload_strategy.py     # Payload generator + sanitiser fingerprint logic
+ai_analysis.py          # Gemini AI integration & reporting panels
+graphql_scanner.py      # GraphQL discovery, introspection, fuzzing
+crawler/                # BFS crawler + advanced Playwright crawler
+parsers/                # Context parsers for sink/source detection
+docs/                   # Reference documentation & evaluation notes
+waf_fingerprints.yaml   # Fingerprint library for supported WAFs
+i18n.py                 # Language selector & translation helper
 ```
 
-## 4. Installation & Environment
+## 4. System Requirements / Prasyarat Sistem
+- **EN:** Python 3.10+ (Windows, macOS, or Linux).
+- **ID:** Python 3.10 atau lebih baru (Windows, macOS, atau Linux).
 
-### Requirements
+- **EN:** `pip install -r requirements.txt` (includes Playwright, HTTP libraries, rich console, etc.).
+- **ID:** `pip install -r requirements.txt` (sudah termasuk Playwright, pustaka HTTP, rich console, dan lainnya).
 
-- Python 3.10 or newer.
-- `pip` packages from `requirements.txt` (includes Playwright).
-- Playwright browsers (Chromium recommended).
-- Optional: Google GenAI API key (`GENAI_API_KEY`) for AI analysis.
+- **EN:** Playwright browser binaries (`python -m playwright install chromium`).
+- **ID:** Binary browser Playwright (`python -m playwright install chromium`).
 
-### Setup
+- **EN:** Optional Google GenAI API Key (`GENAI_API_KEY`) for Gemini analysis.
+- **ID:** Opsional API Key Google GenAI (`GENAI_API_KEY`) untuk analisis Gemini.
 
+- **EN:** Network access to target, and permission to test.
+- **ID:** Akses jaringan ke target dan izin pengujian yang sah.
+
+## 5. Installation & Setup / Instalasi & Persiapan
+### 5.1 Clone & Virtual Environment / Kloning & Lingkungan Virtual
 ```bash
-# Clone
+# EN: Clone repository and enter directory
+# ID: Kloning repositori dan masuk ke direktori
+
 git clone https://github.com/merdekasiberlab/xsscanner.git
 cd xsscanner
 
-# Virtual environment (PowerShell)
+# EN: Create & activate virtual environment (PowerShell)
+# ID: Membuat & mengaktifkan virtual environment (PowerShell)
 python -m venv .venv
 . .venv/Scripts/Activate.ps1
-# For macOS / Linux: source .venv/bin/activate
+# macOS/Linux: source .venv/bin/activate
+```
 
-# Dependencies
+### 5.2 Dependencies & Playwright / Dependensi & Playwright
+```bash
 pip install -r requirements.txt
 python -m playwright install chromium
 ```
+- **EN:** Use `pip install -r requirements-dev.txt` if you maintain the project.
+- **ID:** Gunakan `pip install -r requirements-dev.txt` bila Anda turut mengembangkan proyek.
 
-## 5. CLI Usage Reference
+### 5.3 Environment Variables / Variabel Lingkungan
+- **EN:** `GENAI_API_KEY` – Google GenAI key for Gemini AI analysis.
+- **ID:** `GENAI_API_KEY` – API key Google GenAI untuk analisis Gemini.
 
-```bash
-python main.py [options] <target_url>
-```
+- **EN:** `HTTP_PROXY` / `HTTPS_PROXY` – configure outbound proxies when required.
+- **ID:** `HTTP_PROXY` / `HTTPS_PROXY` – atur proxy keluar bila diperlukan.
 
-| Flag | Description |
-|------|-------------|
-| `--mode {quick,deep}` | Quick = static crawler, Deep = Playwright dynamic crawler. |
-| `--max-urls N` | Cap total URLs explored. |
-| `--depth N` | Recursion depth guard for crawling. |
-| `--payloads FILE` | Load additional payloads from YAML file. |
-| `--cookie "name=value; ..."` | Inject cookies for authenticated scans. |
-| `--manual-login` | Launch headful browser to perform login manually (requires `--login-url`). |
-| `--login-url URL` | Login form entry point for manual capture. |
-| `--username` / `--password` | Credentials for scripted login in deep mode. |
-| `--user-selector`, `--pass-selector`, `--submit-selector` | CSS selectors to customize login automation. |
-| `--graphql` | Enable GraphQL endpoint probing. |
-| `--api-key KEY` | Google GenAI API key (overrides `GENAI_API_KEY`). |
-| `--summary-only` | Suppress verbose output until summary. |
-| `--workers N` | Control thread pool size for payload execution. |
-| `--insecure` | Disable TLS verification (use cautiously). |
+## 6. Usage Cookbook / Panduan Penggunaan
+> **Tip:** The CLI now prompts for language at startup. Choose `id` or `en` to switch all prompts.
 
-### Typical Workflows
-
-#### Baseline crawl & test
+### 6.1 Quick Scan / Pemindaian Cepat
 ```bash
 python main.py --mode quick --max-urls 80 --depth 4 https://target.tld
 ```
+- **EN:** Performs static crawling, parameter discovery, baseline payload execution, and quick DOM inspection.
+- **ID:** Melakukan crawling statis, penemuan parameter, eksekusi payload dasar, dan inspeksi DOM cepat.
 
-#### Deep scan with manual login & GraphQL coverage
+### 6.2 Deep Scan with Manual Login / Pemindaian Deep dengan Login Manual
 ```bash
 python main.py \
   --mode deep \
   --manual-login \
   --login-url https://app.tld/login \
-  --cookie-file corp-session.json \
-  --graphql \
+  --cookie-file session.json \
   --max-urls 150 \
   --depth 6 \
   https://app.tld
 ```
+- **EN:** Launches a headful browser to capture authenticated state, then runs Playwright-based crawling.
+- **ID:** Membuka browser headful untuk menangkap sesi autentikasi, lalu menjalankan crawling berbasis Playwright.
 
-#### AI-guided triage
+### 6.3 AI-Assisted Triage / Triase Berbantuan AI
 ```bash
 set GENAI_API_KEY=your-google-genai-key
 python main.py --mode deep --api-key %GENAI_API_KEY% https://portal.tld
 ```
+- **EN:** Sends contextual HTML/JS snippets and runtime findings to Gemini for sink ranking, payload suggestions, and mitigations.
+- **ID:** Mengirim potongan HTML/JS dan temuan runtime ke Gemini untuk ranking sink, saran payload, dan mitigasi.
 
-## 6. WAF Detection & Bypass Strategy
-
-1. `WAFDetector.detect()` probes the origin and redirect chain with HEAD/GET requests. Matches against `waf_fingerprints.yaml` or heuristic patterns.
-2. Console displays a friendly notification (e.g., `CloudFront terdeteksi`) with metadata:
-   - Confidence level & challenge type (`none`, `js`, `captcha`).
-   - Safe requests-per-second and backoff in milliseconds.
-   - Matched headers/cookies/body markers.
-3. Operator chooses whether to continue. Declining aborts the scan to avoid triggering rate limits or bans.
-4. `network.set_waf_throttle()` enforces safe pace and jitter.
-5. Payload strategy adapts (e.g., short payloads, reduced inline handlers) based on the `waf_plan` supplied to `tester.py`.
-
-> Customize fingerprints under `waf_fingerprints.yaml` to add proprietary CDN signatures or tweak safe RPS values.
-
-## 7. Crawling & Testing Pipeline
-
-```mermaid
-flowchart TD
-    A["CLI Args"] --> B["WAF Detection"]
-    B --> C["Crawler (Quick/Deep)"]
-    C --> D["Parameter Inventory"]
-    D --> E["Dynamic DOM Tester"]
-    D --> F["XSSTester"]
-    E --> G["AI Analyzer"]
-    F --> H["Resilience Report"]
-    G --> H
-    H --> I["Console Summary + Logs"]
-```
-
-### Module Touchpoints
-
-- **`crawler/advanced_crawler.py`**: orchestrates Playwright sessions, handles login storage state, SPA routing, and throttled navigation.
-- **`dynamic_dom_tester.py`**: executes payload probes, collects runtime sinks, and feeds findings back to the tester.
-- **`tester.py`**: central engine that schedules payloads, evaluates responses, records contexts, and builds resilience metrics.
-- **`payload_strategy.py`**: chooses payload variants based on sanitization, context hints, and WAF plans.
-- **`ai_analysis.py`**: optional interactive loop for AI suggestions when runtime sinks are present.
-
-## 8. Logging, Artifacts, and Data Hygiene
-
-- Logs are stored in `logs/xsscanner_<timestamp>.log`. The repository should not commit this directory; ensure it is cleaned before publishing.
-- Playwright storage states (e.g., `cookies.json`) may contain credentials; treat them as secrets.
-- Test artifacts (screenshots, HAR files) can be produced by enabling debug hooks in `advanced_crawler.py` (commented scaffolding available).
-
-## 9. Testing & Quality Assurance
-
+### 6.4 GraphQL Recon & XSS / Rekon & XSS GraphQL
 ```bash
-# Lint & style
-ruff check .
-
-# Type safety
-mypy .
-
-# Unit / integration (excluding heavy browser tests)
-pytest -m "not playwright"
-
-# Smoke test
-python -m compileall cli.py network.py waf_detector.py
-python main.py --mode quick --max-urls 5 --depth 2 https://example.com
+python main.py --mode quick --graphql https://api.tld
 ```
+- **EN:** Discovers GraphQL endpoints, attempts introspection, and fuzzes resolvers for XSS vectors.
+- **ID:** Menemukan endpoint GraphQL, mencoba introspeksi, dan melakukan fuzzing resolver untuk vektor XSS.
 
-> **Pre-release checklist:**
-> - [ ] Clean `logs/`, `__pycache__/`, temp Playwright state.
-> - [ ] Run static checks & smoke tests above.
-> - [ ] Update `waf_fingerprints.yaml` if new fingerprints were added.
-> - [ ] Verify README banner link once final asset is ready.
+### 6.5 CLI Options Quick Reference / Ringkasan Opsi CLI
+| Flag | English Description | Deskripsi Indonesia |
+|------|---------------------|---------------------|
+| `--mode {quick,deep}` | Choose crawler depth (static vs Playwright). | Pilih kedalaman crawler (statis vs Playwright). |
+| `--max-urls N` | Limit URLs crawled. | Batas jumlah URL yang dipindai. |
+| `--depth N` | Recursion depth guard. | Pengaman kedalaman rekursi. |
+| `--payloads FILE` | Merge custom payloads from YAML. | Gabungkan payload kustom dari YAML. |
+| `--cookie "k=v;"` | Inject cookies for authenticated scans. | Masukkan cookie untuk pemindaian terautentikasi. |
+| `--manual-login` | Headful login capture (requires `--login-url`). | Tangkap login via browser headful (butuh `--login-url`). |
+| `--graphql` | Enable GraphQL probing. | Aktifkan pemindaian GraphQL. |
+| `--api-key KEY` | Provide Google GenAI key (overrides env). | Menyediakan API key Google GenAI (override env). |
+| `--summary-only` | Print only final summary. | Tampilkan ringkasan akhir saja. |
+| `--workers N` | Payload execution threads. | Jumlah thread eksekusi payload. |
+| `--insecure` | Disable TLS verification. | Nonaktifkan verifikasi TLS. |
 
-## 10. Troubleshooting
+## 7. Advanced Capabilities / Fitur Lanjutan
+### 7.1 WAF Detection & Throttling / Deteksi & Throttling WAF
+- **EN:** `waf_detector.py` fingerprints headers, cookies, and body markers. When a vendor is matched, the CLI displays throttle guidance and bypass hints (e.g., short payloads, avoid inline handlers).
+- **ID:** `waf_detector.py` mencocokkan header, cookie, dan marker body. Jika vendor terdeteksi, CLI menampilkan panduan throttle dan hint bypass (misal payload pendek, hindari handler inline).
 
-| Issue | Mitigation |
-|-------|------------|
-| WAF detection fails to identify vendor | Capture network trace and extend `waf_fingerprints.yaml` with new header/body regex. |
-| `PlaywrightError: BrowserType.launch: Executable doesn't exist` | Re-run `python -m playwright install chromium`. |
-| Cannot delete log file on Windows | Stop the running scan (Ctrl+C); the log handle is released on exit. |
-| AI module raises import error | Install `google-genai` package or run without `--api-key`. |
-| High false positives | Use `--summary-only` and manually inspect contexts; adjust payload sets in `payloads.yml`. |
+- **EN:** `network.set_waf_throttle()` enforces safe RPS and backoff automatically.
+- **ID:** `network.set_waf_throttle()` menerapkan batas RPS dan jeda secara otomatis.
 
-## 12. Legal Notice
+### 7.2 Dynamic DOM Tester / Dynamic DOM Tester
+- **EN:** Uses Playwright to evaluate runtime sinks (e.g., `innerHTML`, event handlers, location-based sources). Records taint flows and runtime findings for AI analysis and resilience scoring.
+- **ID:** Menggunakan Playwright untuk mengevaluasi sink runtime (misal `innerHTML`, event handler, sumber lokasi). Mencatat alur taint dan temuan runtime untuk analisis AI dan penilaian ketahanan.
 
-- Use this toolkit only against systems you own or have explicit, written authorization to assess.
-- You are solely responsible for complying with local laws, regulations, and contractual obligations.
-- MerdekaSiberLab and contributors disclaim liability for misuse or damages arising from the operation of this software.
+### 7.3 Gemini AI Analyzer / Analis Gemini AI
+- **EN:** Grabs HTML, CSP headers, inline scripts, and ranked external JS snippets to craft a Gemini prompt. Outputs sectioned panels with sinks, exploit paths, payload ladders, and mitigations.
+- **ID:** Mengumpulkan HTML, header CSP, skrip inline, serta snippet JS eksternal terpilih untuk membentuk prompt Gemini. Menghasilkan panel terstruktur berisi sink, jalur eksploitasi, ladder payload, dan mitigasi.
 
----
+### 7.4 Resilience Score / Skor Ketahanan
+- **EN:** After scans, `tester.py` aggregates CSP/Trusted Types probes, sink coverage, and confirmed payloads into a 0–100 score with actionable checklist.
+- **ID:** Setelah pemindaian, `tester.py` menggabungkan probe CSP/Trusted Types, cakupan sink, dan payload terkonfirmasi menjadi skor 0–100 beserta daftar tindakan.
 
-# Dokumentasi Pemindai XSS (Bahasa Indonesia)
+### 7.5 Multilingual CLI / CLI Multibahasa
+- **EN:** Language selection occurs at startup via `_prompt_language_choice()`. You can switch languages between runs; translations live in `i18n.py`.
+- **ID:** Pemilihan bahasa dilakukan saat startup lewat `_prompt_language_choice()`. Bahasa dapat diganti antar sesi; terjemahan berada di `i18n.py`.
 
-## 1. Gambaran Umum
+## 8. Logs, Reports & Data Hygiene / Log, Laporan & Kebersihan Data
+- **EN:** Runtime logs are stored under `logs/`. Clear the directory before sharing results.
+- **ID:** Log runtime disimpan di `logs/`. Bersihkan direktori sebelum membagikan hasil.
 
-**Pemindai XSS** adalah paket asesmen lengkap untuk menemukan dan memvalidasi kerentanan cross-site scripting. Kombinasi fiturnya meliputi:
+- **EN:** Playwright state files (cookies, storage) may contain credentials; treat them as secrets.
+- **ID:** File state Playwright (cookie, storage) dapat berisi kredensial; perlakukan sebagai rahasia.
 
-- **Crawler hibrida**: parser HTML statis ditambah crawler dinamis berbasis Playwright.
-- **Mesin payload kontekstual** (`payload_strategy.py`): menghasilkan payload adaptif berdasar profil sanitasi, konteks, dan rencana WAF.
-- **Inspeksi DOM runtime** (`dynamic_dom_tester.py`): mendeteksi perubahan sink saat halaman dirender klien.
-- **Deteksi WAF adaptif** (`waf_detector.py` + `network.py`): mengenali vendor populer, menghitung batas aman, dan memberi panduan bypass.
-- **Analisis berbantuan AI** (`ai_analysis.py`): memanfaatkan Google GenAI untuk triase dan saran mitigasi ketika API key tersedia.
-- **Cakupan GraphQL** (`graphql_scanner.py`): memetakan endpoint, introspeksi skema, dan melakukan fuzzing terhadap resolver.
-- **Skoring ketahanan** (`tester.py` + `resilience.py`): merangkum tingkat mitigasi, confidence, dan checklist perbaikan.
+- **EN:** AI panels and resilience summaries can be exported by copying console output or piping to a log file.
+- **ID:** Panel AI dan ringkasan ketahanan dapat diekspor dengan menyalin output console atau mengalihkan ke file log.
 
-## 2. Matriks Fitur
+## 9. Troubleshooting & FAQ / Pemecahan Masalah & FAQ
+| Issue / Masalah | EN Fix | Solusi ID |
+|-----------------|--------|-----------|
+| WAF not detected | Extend `waf_fingerprints.yaml` with new header/body regex. | Tambah regex baru di `waf_fingerprints.yaml` untuk header/body. |
+| Playwright launch error | Run `python -m playwright install chromium`. | Jalankan `python -m playwright install chromium`. |
+| Cannot delete log file on Windows | Stop the running scan (Ctrl+C); log handle releases on exit. | Hentikan proses pemindaian (Ctrl+C); handle log akan dilepas saat keluar. |
+| Gemini import error | Ensure `google-genai` is installed or run without `--api-key`. | Pastikan `google-genai` terpasang atau jalankan tanpa `--api-key`. |
+| High false positives | Review context manually, adjust payload sets in `payloads.yml`. | Tinjau konteks secara manual, sesuaikan payload di `payloads.yml`. |
+| Scan too slow behind WAF | Use `--mode quick`, reduce `--max-urls`, or accept suggested throttle. | Gunakan `--mode quick`, kurangi `--max-urls`, atau terapkan throttle yang disarankan. |
 
-| Kemampuan | Mode Quick | Mode Deep |
-|-----------|------------|-----------|
-| Crawling statis | Ya | Ya |
-| Automasi Playwright | Tidak | Ya |
-| Tangkap login manual | Cookie manual | `--manual-login` + penyimpanan sesi |
-| Pelacakan DOM dinamis | Ya | Ya |
-| Analisis AI | Opsional | Opsional |
-| GraphQL probing | Opsional (`--graphql`) | Opsional (`--graphql`) |
-| Deteksi & throttle WAF | Ya | Ya |
+## 10. Roadmap & Contribution Ideas / Rencana & Ide Kontribusi
+- **EN:** Automated OAST callback integration, richer report exporters (HTML, SARIF), CI smoke-test pipeline, and remote fingerprint feeds.
+- **ID:** Integrasi callback OAST otomatis, ekspor laporan yang lebih kaya (HTML, SARIF), pipeline smoke-test CI, dan feed fingerprint jarak jauh.
 
-## 3. Struktur Repositori
+- **EN:** Contributions welcome via pull request. Please follow lint (`ruff`), type check (`mypy`), and compile checks.
+- **ID:** Kontribusi dipersilakan melalui pull request. Ikuti lint (`ruff`), pemeriksa tipe (`mypy`), dan cek kompilasi.
 
-```
-- cli.py                  # Antarmuka pengguna & alur utama
-- main.py                 # Pembungkus eksekusi CLI
-- network.py              # Manajemen sesi HTTP & throttle WAF
-- waf_detector.py         # Fingerprint + rencana bypass
-- payload_strategy.py     # Mesin payload adaptif
-- tester.py               # Orkestrasi pengujian & skoring ketahanan
-- dynamic_dom_tester.py   # Inspeksi DOM runtime
-- ai_analysis.py          # Integrasi GenAI opsional
-- graphql_scanner.py      # Deteksi & fuzzing GraphQL
-- crawler/                # Implementasi crawler statis & dinamis
-- parsers/                # Parser konteks sink
-- docs/                   # Dokumentasi tambahan & evaluasi
-- waf_fingerprints.yaml   # Definisi fingerprint WAF
-```
+## 11. Legal Notice / Catatan Hukum
+- **EN:** Use this toolkit only on systems you own or have explicit written permission to test.
+- **ID:** Gunakan alat ini hanya pada sistem milik sendiri atau yang memiliki izin tertulis eksplisit untuk diuji.
 
-## 4. Instalasi & Lingkungan
+- **EN:** You are responsible for complying with laws, regulations, and contractual obligations.
+- **ID:** Anda bertanggung jawab mematuhi hukum, regulasi, dan kewajiban kontraktual yang berlaku.
 
-### Prasyarat
-
-- Python 3.10 atau lebih baru.
-- Dependensi `pip` pada `requirements.txt` (termasuk Playwright).
-- Browser Playwright (`python -m playwright install chromium`).
-- Opsional: API key Google GenAI (`GENAI_API_KEY`).
-
-### Langkah Setup
-
-```bash
-# Kloning
-git clone https://github.com/merdekasiberlab/xsscanner.git
-cd xsscanner
-
-# Virtual environment (PowerShell)
-python -m venv .venv
-. .venv/Scripts/Activate.ps1
-# macOS / Linux: source .venv/bin/activate
-
-# Install paket
-pip install -r requirements.txt
-python -m playwright install chromium
-```
-
-## 5. Referensi CLI
-
-```bash
-python main.py [opsi] <url_target>
-```
-
-| Opsi | Penjelasan |
-|------|------------|
-| `--mode {quick,deep}` | Quick = crawler statis, Deep = crawler dinamis (Playwright). |
-| `--max-urls N` | Batas jumlah URL yang dieksplorasi. |
-| `--depth N` | Kontrol kedalaman rekursi. |
-| `--payloads FILE` | Memuat payload tambahan dari YAML. |
-| `--cookie` | Menyuntikkan cookie sesi manual. |
-| `--manual-login` | Membuka browser headful untuk login manual (butuh `--login-url`). |
-| `--login-url` | URL form login untuk capture manual. |
-| `--username` / `--password` | Kredensial untuk login otomatis di mode deep. |
-| `--user-selector`, `--pass-selector`, `--submit-selector` | Selector CSS untuk menyesuaikan form login. |
-| `--graphql` | Aktifkan pemindaian GraphQL. |
-| `--api-key` | API key Google GenAI (override environment variable). |
-| `--summary-only` | Menyembunyikan output detail sampai ringkasan akhir. |
-| `--workers N` | Jumlah worker thread untuk injeksi payload. |
-| `--insecure` | Menonaktifkan verifikasi TLS (gunakan hati-hati). |
-
-### Contoh Alur
-
-#### Pemindaian dasar
-```bash
-python main.py --mode quick --max-urls 80 --depth 4 https://target.tld
-```
-
-#### Pemindaian lanjutan dengan login manual & GraphQL
-```bash
-python main.py \
-  --mode deep \
-  --manual-login \
-  --login-url https://app.tld/login \
-  --cookie-file corp-session.json \
-  --graphql \
-  --max-urls 150 \
-  --depth 6 \
-  https://app.tld
-```
-
-#### Triase berbantuan AI
-```bash
-set GENAI_API_KEY=api-key-anda
-python main.py --mode deep --api-key %GENAI_API_KEY% https://portal.tld
-```
-
-## 6. Deteksi & Bypass WAF
-
-1. `WAFDetector.detect()` melakukan probe HEAD/GET terhadap origin dan chain redirect.
-2. Hasil cocok ditampilkan sebagai notifikasi ramah (misal `CloudFront terdeteksi`) beserta metadata throttle.
-3. Operator memilih lanjut/tidak; penolakan menghentikan pemindaian.
-4. `network.set_waf_throttle()` menerapkan batas laju & jeda sesuai profil.
-5. `payload_strategy.py` menyesuaikan strategi (payload pendek, hindari inline handler, dll.).
-
-## 7. Pipeline Crawling & Pengujian
-
-```mermaid
-flowchart TD
-    A["Argumen CLI"] --> B["Deteksi WAF"]
-    B --> C{Lanjut?}
-    C -->|Ya| D[Crawler]
-    C -->|Tidak| Z[Abort]
-    D --> E["Inventaris parameter/JS"]
-    E --> F["Dynamic DOM Tester"]
-    E --> G["XSSTester"]
-    F --> H["Analisis AI"]
-    G --> I["Laporan Ketahanan"]
-    H --> I
-    I --> J["Ringkasan + Log"]
-```
-
-## 8. Logging & Kebersihan Data
-
-- Log berada di `logs/`; hapus sebelum commit atau berbagi.
-- File Playwright (contoh `cookies.json`) bersifat sensitif.
-- Artefak tambahan (screenshot/HAR) dapat diaktifkan melalui hook debug.
-
-## 9. Pengujian & Quality Gate
-
-```bash
-ruff check .
-mypy .
-pytest -m "not playwright"
-python -m compileall cli.py network.py waf_detector.py
-python main.py --mode quick --max-urls 5 --depth 2 https://example.com
-```
-
-Checklist sebelum rilis:
-- [ ] Bersihkan `logs/`, `__pycache__/`, state Playwright.
-- [ ] Jalankan lint, type check, dan smoke test.
-- [ ] Perbarui fingerprint jika ada vendor baru.
-- [ ] Ganti banner placeholder dengan aset final.
-
-## 10. Pemecahan Masalah
-
-| Masalah | Solusi |
-|---------|--------|
-| Fingerprint WAF tidak dikenali | Tambahkan pola baru ke `waf_fingerprints.yaml`. |
-| Playwright gagal launch | Jalankan `python -m playwright install chromium`. |
-| File log tidak bisa dihapus | Hentikan proses pemindaian (Ctrl+C). |
-| Modul AI error | Pasang dependensi GenAI atau jalankan tanpa `--api-key`. |
-| False positive tinggi | Tinjau konteks secara manual, sesuaikan payload pada `payloads.yml`. |
-
-## 11. Roadmap & Ekstensi
-
-- Integrasi OAST otomatis (`oast.py`).
-- Dukungan fingerprint kustom via konfigurasi remote.
-- Ekspor laporan (SARIF/HTML) dengan menghidupkan kembali blok artefak di `cli.py`.
-- Otomasi CI/CD (GitHub Actions) dengan pengelolaan secret.
-
-## 12. Catatan Hukum
-
-- Gunakan toolkit ini hanya pada sistem milik sendiri atau yang telah memberi izin tertulis dan eksplisit.
-- Tanggung jawab kepatuhan terhadap hukum, regulasi, dan perjanjian sepenuhnya berada pada pengguna.
-- MerdekaSiberLab dan para kontributor tidak bertanggung jawab atas penyalahgunaan maupun kerugian yang timbul dari penggunaan perangkat lunak ini.
+- **EN:** MerdekaSiberLab and contributors are not liable for misuse or damages arising from this software.
+- **ID:** MerdekaSiberLab dan kontributor tidak bertanggung jawab atas penyalahgunaan maupun kerugian akibat penggunaan perangkat lunak ini.
 
 ---
