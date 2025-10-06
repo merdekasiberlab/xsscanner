@@ -1,0 +1,56 @@
+routes:
+  /html:
+    context: html_tag
+    expected_class: Executed
+  /attr_dq:
+    context: attr_quoted
+    expected_class: Executed
+  /attr_sq:
+    context: attr_quoted
+    expected_class: Executed
+  /attr_uq:
+    context: attr_unquoted
+    expected_class: Executed
+  /js_dq:
+    context: js_string
+    expected_class: Executed
+  /js_sq:
+    context: js_string
+    expected_class: Executed
+  /url:
+    context: uri_scheme
+    expected_class: Executed
+  /svg:
+    context: svg
+    expected_class: Executed
+  /css:
+    context: css
+    expected_class: DOM-sink-only
+  /srcdoc:
+    context: srcdoc_attr
+    expected_class: Executed
+  /hash_router:
+    context: hash
+    expected_class: Executed
+  /storage:
+    context: storage
+    expected_class: Executed
+  /ws_client:
+    context: websocket
+    expected_class: Executed
+  /postmessage:
+    context: postmessage
+    expected_class: Executed
+  /forms:
+    context: form
+    expected_class: DOM-sink-only
+  /forms/result:
+    context: form_result
+    expected_class: Executed
+  /csp/loose:
+    context: csp
+    expected_class: Executed
+  /csp/strict:
+    context: csp
+    expected_class: Blocked-by-CSP
+

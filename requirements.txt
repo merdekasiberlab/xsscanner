@@ -1,0 +1,16 @@
+requests
+rich
+PyYAML
+beautifulsoup4
+sseclient
+playwright
+google-genai
+esprima
+tinycss2
+coverage
+lxml
+Flask
+flask-sock
+simple-websocket
+gunicorn
+pandas
