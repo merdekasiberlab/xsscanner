@@ -312,8 +312,10 @@ def _render_js_overview(metas: List[Dict]) -> Dict[str, Dict]:
     table.add_column('URL', style='white', overflow='fold')
     choice_map: Dict[str, Dict] = {}
     for idx, meta in enumerate(metas, start=1):
-        sinks = ', '.join(meta.get('sink_hits')[:3]) or '-'
-        sources = ', '.join(meta.get('source_hits')[:3]) or '-'
+        sink_hits = list(meta.get('sink_hits') or [])
+        source_hits = list(meta.get('source_hits') or [])
+        sinks = ', '.join(sink_hits[:3]) if sink_hits else '-'
+        sources = ', '.join(source_hits[:3]) if source_hits else '-'
         size_kb = f"{meta.get('size', 0) / 1024:.1f} KB"
         table.add_row(str(idx), str(meta.get('score', 0)), sinks, sources, size_kb, meta.get('url', '-'))
         choice_map[str(idx)] = meta
